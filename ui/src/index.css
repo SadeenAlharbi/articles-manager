@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+
+/*
+ * نظام التصميم — نفس هوية منصّة المعرفة (أخضر سعودي + محايدات دافئة)
+ * حتى يبدو المشروعان عائلة واحدة أمام المشرف.
+ */
+@theme {
+  --font-sans: 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: oklch(97% 0.02 152);
+  --color-brand-100: oklch(93% 0.045 152);
+  --color-brand-500: oklch(48% 0.12 152);
+  --color-brand-600: oklch(38% 0.1 152);
+  --color-brand-700: oklch(30% 0.085 152);
+
+  --color-ink-50: oklch(97.5% 0.004 90);
+  --color-ink-100: oklch(94% 0.006 90);
+  --color-ink-200: oklch(88% 0.008 90);
+  --color-ink-400: oklch(62% 0.012 90);
+  --color-ink-500: oklch(48% 0.012 90);
+  --color-ink-700: oklch(29% 0.012 90);
+  --color-ink-900: oklch(17% 0.012 90);
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-ink-50);
+  color: var(--color-ink-900);
+}
