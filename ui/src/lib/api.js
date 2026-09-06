@@ -44,15 +44,38 @@ export async function api(path, { method = 'GET', body, params } = {}) {
 
   const token = tokenStore.get()
 
-  const response = await fetch(url, {
-    method,
-    headers: {
-      Accept: 'application/json',
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  })
+  let response
+
+  /*
+   * FormData يُرسَل كما هو بلا تحويل، و**بلا** ترويسة Content-Type: المتصفّح
+   * يضبطها بنفسه ويضيف الحدّ الفاصل (boundary) الذي لا يعرفه أحد سواه. تحديدها
+   * يدوياً يُنتج طلباً بلا فاصل، فيصل الخادمَ جسمٌ فارغ بلا خطأ ظاهر.
+   */
+  const isForm = body instanceof FormData
+
+  /*
+   * فشل الشبكة يُلقي TypeError لا استجابة، ونصّه من المتصفّح لا منّا:
+   * Safari يقول «Load failed» وChrome «Failed to fetch» — كلاهما إنجليزي
+   * ولا يدلّ المستخدم على شيء. نلتقطه هنا ونحوّله إلى ApiError برمز 0
+   * (لا استجابة أصلاً) ورسالة عربية تقول ما يجب فعله.
+   */
+  try {
+    response = await fetch(url, {
+      method,
+      headers: {
+        Accept: 'application/json',
+        ...(body && !isForm ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: isForm ? body : body ? JSON.stringify(body) : undefined,
+    })
+  } catch {
+    throw new ApiError(
+      'تعذّر الاتصال بخادم لوحة الإدارة. تأكّد من أنه يعمل، ثم أعد المحاولة.',
+      0,
+      null
+    )
+  }
 
   const data = await response.json().catch(() => ({}))
 

@@ -1,29 +1,92 @@
 @import 'tailwindcss';
 
 /*
- * نظام التصميم — نفس هوية منصّة المعرفة (أخضر سعودي + محايدات دافئة)
- * حتى يبدو المشروعان عائلة واحدة أمام المشرف.
+ * IBM Plex Sans Arabic — خط نظام التصميم الحكومي السعودي، وهو الخط الذي
+ * يعرّفه core.css المستورد في منصّة المعرفة أصلاً.
+ *
+ * مستضاف ذاتياً عبر @fontsource لا عبر <link> إلى شبكة خارجية: التبعية
+ * لشبكة وقت التشغيل تعني أن تأخّرها أو حجبها يُظهر الواجهة بخط النظام،
+ * وخط النظام يختلف من جهاز لآخر. وكل ملف يحمل نطاقات محارف متعدّدة بينها
+ * العربي، فلا ينزّل المتصفّح إلا ما تحتاجه الصفحة فعلاً.
+ *
+ * الأوزان الأربعة هي كل ما تستعمله الواجهة: عادي، متوسط، شبه عريض، عريض.
+ */
+@import '@fontsource/ibm-plex-sans-arabic/400.css';
+@import '@fontsource/ibm-plex-sans-arabic/500.css';
+@import '@fontsource/ibm-plex-sans-arabic/600.css';
+@import '@fontsource/ibm-plex-sans-arabic/700.css';
+
+/*
+ * نظام التصميم.
+ *
+ * الهوية نفسها المستخدمة في منصّة المعرفة — أخضر سعودي ومحايدات دافئة —
+ * فيبدو المشروعان عائلة واحدة. الألوان بمساحة oklch لأنها تحافظ على
+ * الإدراك البصري للسطوع بين الدرجات، بخلاف hex.
  */
 @theme {
-  --font-sans: 'Tajawal', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
 
+  /* الأخضر السعودي — لون الفعل والهوية */
   --color-brand-50: oklch(97% 0.02 152);
   --color-brand-100: oklch(93% 0.045 152);
+  --color-brand-200: oklch(86% 0.08 152);
+  --color-brand-400: oklch(64% 0.13 152);
   --color-brand-500: oklch(48% 0.12 152);
   --color-brand-600: oklch(38% 0.1 152);
   --color-brand-700: oklch(30% 0.085 152);
 
+  /* الأخضر العميق — الشريط الجانبي، مأخوذ من هوية المنصّة */
+  --color-flag-800: oklch(26% 0.06 158);
+  --color-flag-900: oklch(21% 0.05 158);
+  --color-flag-950: oklch(17% 0.04 158);
+
+  /* لمسة رملية — للتمييز الخفيف لا للزينة */
+  --color-sand-100: oklch(94% 0.045 75);
+  --color-sand-500: oklch(62% 0.11 55);
+
+  /* محايدات دافئة بميل خفيف نحو الأخضر — لا رمادي محايد باهت */
+  --color-ink-25: oklch(99% 0.003 90);
   --color-ink-50: oklch(97.5% 0.004 90);
   --color-ink-100: oklch(94% 0.006 90);
   --color-ink-200: oklch(88% 0.008 90);
+  --color-ink-300: oklch(78% 0.01 90);
   --color-ink-400: oklch(62% 0.012 90);
   --color-ink-500: oklch(48% 0.012 90);
+  --color-ink-600: oklch(38% 0.012 90);
   --color-ink-700: oklch(29% 0.012 90);
   --color-ink-900: oklch(17% 0.012 90);
+
+  /* ظلال خافتة — عمق بلا ثقل */
+  --shadow-card: 0 1px 2px oklch(17% 0.012 90 / 0.04), 0 1px 3px oklch(17% 0.012 90 / 0.03);
+  --shadow-lift: 0 4px 12px oklch(17% 0.012 90 / 0.07);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-sans);
-  background: var(--color-ink-50);
+  background: var(--color-ink-25);
   color: var(--color-ink-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* عناوين متوازنة الأسطر — لا تُترك كلمة وحيدة في سطر */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+/* حالة تركيز واضحة لمستخدمي لوحة المفاتيح */
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+/* احترام تفضيل تقليل الحركة */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

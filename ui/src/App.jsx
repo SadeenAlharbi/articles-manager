@@ -1,85 +1,104 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from './auth/AuthContext'
+import Layout from './components/Layout'
+import { IconArticles, IconAudit, IconChart, IconUsers } from './components/icons'
 import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
 import ArticlesPage from './pages/ArticlesPage'
+import UsersPage from './pages/UsersPage'
 import AuditLogsPage from './pages/AuditLogsPage'
 
-export default function App() {
-  const { user, loading, logout, hasRole } = useAuth()
-  const [tab, setTab] = useState('articles')
+/*
+ * التبويبات تظهر حسب الصلاحيات لا حسب الأدوار — فمن مُنح audit.view
+ * منحاً مباشراً يرى تبويب السجلّ دون أن يكون مشرفاً. وهذا يطابق ما
+ * يحرس به الخادم كل مسار بالضبط.
+ */
+const TABS = [
+  {
+    key: 'dashboard',
+    label: 'لوحة المعلومات',
+    icon: IconChart,
+    permission: 'analytics.view',
+    title: 'لوحة المعلومات',
+    subtitle: 'أرقام المنصّة وآخر العمليات',
+    Page: DashboardPage,
+  },
+  {
+    key: 'articles',
+    label: 'المقالات',
+    icon: IconArticles,
+    permission: 'articles.view',
+    title: 'المقالات',
+    subtitle: 'تُدار في منصّة المعرفة عبر واجهتها البرمجية',
+    Page: ArticlesPage,
+  },
+  {
+    key: 'users',
+    label: 'المستخدمون',
+    icon: IconUsers,
+    permission: 'users.manage',
+    title: 'المستخدمون',
+    subtitle: 'حسابات نظام الإدارة وأدوارها وصلاحياتها الفردية',
+    Page: UsersPage,
+  },
+  {
+    key: 'audit',
+    label: 'سجلّ العمليات',
+    icon: IconAudit,
+    permission: 'audit.view',
+    title: 'سجلّ العمليات',
+    Page: AuditLogsPage,
+  },
+]
 
-  // عند تبديل الحساب نعود للمقالات: تبويب المشرف قد يبقى مفتوحاً
-  // لمستخدم لا يملكه، فيصطدم بـ403 بلا داعٍ.
-  useEffect(() => { setTab('articles') }, [user?.id])
+export default function App() {
+  const { user, loading, can } = useAuth()
+  const [tab, setTab] = useState(null)
+
+  /*
+   * عند تبديل الحساب نعود إلى أول تبويب متاح لا إلى تبويب بعينه: مَن لا يملك
+   * analytics.view لا يرى لوحة المعلومات، فلا نفتحها له ثم نسقط عنها.
+   */
+  useEffect(() => {
+    setTab(null)
+  }, [user?.id])
 
   if (loading) {
-    return <div className="grid min-h-screen place-items-center text-sm text-ink-400">جارِ التحميل...</div>
+    return (
+      <div className="grid min-h-screen place-items-center">
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-ink-200 border-t-brand-600" />
+      </div>
+    )
   }
 
   if (!user) {
     return <LoginPage />
   }
 
+  const visibleTabs = TABS.filter((item) => can(item.permission))
+  const active = visibleTabs.find((item) => item.key === tab) ?? visibleTabs[0]
+
+  if (!active) {
+    return (
+      <div className="grid min-h-screen place-items-center px-6">
+        <p className="rounded-2xl border border-ink-200 bg-white px-5 py-4 text-center text-sm text-ink-500">
+          لا توجد أقسام متاحة لحسابك. راجع إدارة النظام.
+        </p>
+      </div>
+    )
+  }
+
+  const Page = active.Page
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-ink-200 bg-white">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-6 py-4">
-          <div>
-            <h1 className="font-bold text-ink-900">لوحة إدارة المقالات</h1>
-            <p className="text-xs text-ink-400">
-              {user.name} — {user.roles.join('، ')}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setTab('articles')}
-              className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-                tab === 'articles' ? 'bg-brand-600 text-white' : 'text-ink-700 hover:bg-ink-50'
-              }`}
-            >
-              المقالات
-            </button>
-
-            {/* الشاشة تظهر للمشرف فقط — والخادم يفرض ذلك أيضاً بـrole:admin */}
-            {hasRole('admin') && (
-              <button
-                onClick={() => setTab('audit')}
-                className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-                  tab === 'audit' ? 'bg-brand-600 text-white' : 'text-ink-700 hover:bg-ink-50'
-                }`}
-              >
-                سجلّ التدقيق
-              </button>
-            )}
-
-            <button
-              onClick={logout}
-              className="rounded-lg border border-ink-200 px-3 py-1.5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
-            >
-              خروج
-            </button>
-          </div>
-        </div>
-
-        {/* شريط الصلاحيات — مفيد جداً أثناء العرض في المناقشة */}
-        <div className="mx-auto max-w-4xl px-6 pb-3">
-          <div className="flex flex-wrap gap-1.5">
-            {user.permissions.map((permission) => (
-              <span
-                key={permission}
-                className="rounded-full bg-ink-50 px-2 py-0.5 font-mono text-[11px] text-ink-500"
-              >
-                {permission}
-              </span>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-4xl px-6 py-8">
-        {tab === 'articles' ? <ArticlesPage /> : <AuditLogsPage />}
-      </main>
-    </div>
+    <Layout
+      tabs={visibleTabs}
+      activeTab={active.key}
+      onTabChange={setTab}
+      title={active.title}
+      subtitle={active.subtitle}
+    >
+      <Page />
+    </Layout>
   )
 }

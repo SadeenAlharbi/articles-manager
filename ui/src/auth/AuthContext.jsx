@@ -12,6 +12,11 @@ const AuthContext = createContext(null)
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
+  /*
+   * عنوان منصّة المعرفة العام — يصل من الخادم لا من .env الواجهة،
+   * فمصدر الحقيقة واحد. تبني منه الصفحات روابط المقالات الحقيقية.
+   */
+  const [platformUrl, setPlatformUrl] = useState(null)
   const [loading, setLoading] = useState(true)
 
   // عند فتح الصفحة: لو كان هناك توكن محفوظ، نتحقّق أنه ما زال صالحاً.
@@ -22,7 +27,10 @@ export function AuthProvider({ children }) {
     }
 
     api('/me')
-      .then((response) => setUser(response.user))
+      .then((response) => {
+        setUser(response.user)
+        setPlatformUrl(response.platform_url ?? null)
+      })
       .catch(() => tokenStore.clear())
       .finally(() => setLoading(false))
   }, [])
@@ -31,6 +39,7 @@ export function AuthProvider({ children }) {
     const response = await api('/login', { method: 'POST', body: { email, password } })
     tokenStore.set(response.token)
     setUser(response.user)
+    setPlatformUrl(response.platform_url ?? null)
   }, [])
 
   const logout = useCallback(async () => {
@@ -44,7 +53,7 @@ export function AuthProvider({ children }) {
   const hasRole = useCallback((role) => Boolean(user?.roles?.includes(role)), [user])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, can, hasRole }}>
+    <AuthContext.Provider value={{ user, platformUrl, loading, login, logout, can, hasRole }}>
       {children}
     </AuthContext.Provider>
   )
