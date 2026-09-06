@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
-
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+/*
+ * أوامر artisan الخاصة بهذا المشروع.
+ *
+ * فارغ عمداً: لم نحتج أمراً مخصّصاً بعد. يبقى الملف لأن bootstrap/app.php
+ * يشير إليه، وهو الموضع الاصطلاحي لأي أمر نضيفه لاحقاً.
+ */

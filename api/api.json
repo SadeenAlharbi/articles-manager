@@ -1,0 +1,2110 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "\u062a\u0648\u062b\u064a\u0642 \u0648\u0627\u062c\u0647\u0629 \u0644\u0648\u062d\u0629 \u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a",
+        "version": "1.0.0",
+        "description": "<div dir=\"rtl\" style=\"text-align:right\"><p>\u0648\u0627\u062c\u0647\u0629 \u0628\u0631\u0645\u062c\u064a\u0629 \u0644\u0646\u0638\u0627\u0645 \u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a \u2014 \u0646\u0638\u0627\u0645 \u0625\u062f\u0627\u0631\u064a \u0645\u0633\u062a\u0642\u0644 \u0644\u0625\u062f\u0627\u0631\u0629 \u0645\u062d\u062a\u0648\u0649 \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u0627\u0644\u0633\u0639\u0648\u062f\u064a\u0629.</p><p><strong>\u0627\u0644\u0645\u0635\u0627\u062f\u0642\u0629:</strong> \u0643\u0644 \u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062a \u0639\u062f\u0627 <code>POST /login</code> \u062a\u062a\u0637\u0644\u0651\u0628 \u062a\u0648\u0643\u0646 Sanctum \u0641\u064a \u062a\u0631\u0648\u064a\u0633\u0629 <code>Authorization: Bearer &lt;token&gt;</code>. \u0627\u0636\u063a\u0637 <strong>Authorize</strong> \u0623\u0639\u0644\u0649 \u0627\u0644\u0635\u0641\u062d\u0629 \u0648\u0623\u0644\u0635\u0642 \u0627\u0644\u062a\u0648\u0643\u0646.</p><p><strong>\u0627\u0644\u062a\u0641\u0648\u064a\u0636:</strong> \u0644\u0643\u0644 \u0645\u0633\u0627\u0631 \u0635\u0644\u0627\u062d\u064a\u0629 \u0645\u0637\u0644\u0648\u0628\u0629 \u062a\u064f\u0641\u062d\u0635 \u0641\u064a \u0627\u0644\u062e\u0627\u062f\u0645 \u0639\u0628\u0631 <code>permission:</code> middleware. \u0627\u0645\u062a\u0644\u0627\u0643 \u062a\u0648\u0643\u0646 \u0635\u0627\u0644\u062d \u0644\u0627 \u064a\u0643\u0641\u064a \u2014 \u0627\u0644\u0631\u0641\u0636 \u064a\u0643\u0648\u0646 \u0628\u0627\u0644\u0631\u0645\u0632 <code>403</code>.</p><p><strong>\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a \u0644\u0627 \u062a\u064f\u062e\u0632\u064e\u0651\u0646 \u0647\u0646\u0627:</strong> \u0645\u0633\u0627\u0631\u0627\u062a <code>/articles</code> \u062a\u0646\u0642\u0644 \u0627\u0644\u0637\u0644\u0628 \u0625\u0644\u0649 \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u0639\u0628\u0631 \u0648\u0627\u062c\u0647\u062a\u0647\u0627 \u0627\u0644\u0628\u0631\u0645\u062c\u064a\u0629. \u062a\u0639\u0630\u0651\u0631 \u0627\u0644\u0648\u0635\u0648\u0644 \u0625\u0644\u064a\u0647\u0627 \u064a\u064f\u0631\u062c\u0639 \u0627\u0644\u0631\u0645\u0632 <code>502</code>.</p></div>"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8001/api/v1"
+        }
+    ],
+    "tags": [
+        {
+            "name": "\u0627\u0644\u0645\u0635\u0627\u062f\u0642\u0629",
+            "description": "\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644 \u0648\u0627\u0644\u062e\u0631\u0648\u062c \u0648\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u062d\u0627\u0644\u064a."
+        },
+        {
+            "name": "\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a",
+            "description": "\u0625\u062f\u0627\u0631\u0629 \u0645\u0642\u0627\u0644\u0627\u062a \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u0639\u0628\u0631 \u0648\u0627\u062c\u0647\u062a\u0647\u0627 \u0627\u0644\u0628\u0631\u0645\u062c\u064a\u0629."
+        },
+        {
+            "name": "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646",
+            "description": "\u062d\u0633\u0627\u0628\u0627\u062a \u0646\u0638\u0627\u0645 \u0627\u0644\u0625\u062f\u0627\u0631\u0629 \u0648\u0623\u062f\u0648\u0627\u0631\u0647\u0627 \u0648\u0635\u0644\u0627\u062d\u064a\u0627\u062a\u0647\u0627 \u0627\u0644\u0641\u0631\u062f\u064a\u0629."
+        },
+        {
+            "name": "\u0633\u062c\u0644\u0651 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a",
+            "description": "\u0645\u0646 \u0641\u0639\u0644 \u0645\u0627\u0630\u0627 \u0648\u0645\u062a\u0649 \u2014 \u0627\u0644\u0646\u0627\u062c\u062d \u0648\u0627\u0644\u0645\u0631\u0641\u0648\u0636."
+        },
+        {
+            "name": "\u0644\u0648\u062d\u0629 \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a",
+            "description": "\u0623\u0631\u0642\u0627\u0645 \u0627\u0644\u0645\u0646\u0635\u0651\u0629 \u0648\u0622\u062e\u0631 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a \u0641\u064a \u0645\u0643\u0627\u0646 \u0648\u0627\u062d\u062f."
+        }
+    ],
+    "security": [
+        {
+            "http": []
+        }
+    ],
+    "paths": {
+        "/login": {
+            "post": {
+                "operationId": "auth.login",
+                "description": "\u0627\u0644\u0645\u0633\u0627\u0631 \u0627\u0644\u0648\u062d\u064a\u062f \u0627\u0644\u0645\u0641\u062a\u0648\u062d \u0628\u0644\u0627 \u062a\u0648\u0643\u0646\u060c \u0648\u0645\u062d\u062f\u0648\u062f \u0628\u06405 \u0645\u062d\u0627\u0648\u0644\u0627\u062a \u0641\u064a \u0627\u0644\u062f\u0642\u064a\u0642\u0629. \u064a\u064f\u0631\u062c\u0639 \u062a\u0648\u0643\u0646\nSanctum \u064a\u064f\u0631\u0633\u064e\u0644 \u0628\u0639\u062f\u0647\u0627 \u0641\u064a \u062a\u0631\u0648\u064a\u0633\u0629 `Authorization: Bearer`.\n\n\u0641\u062d\u0635 \u0627\u0644\u062a\u0639\u0637\u064a\u0644 \u064a\u0642\u0639 **\u0628\u0639\u062f** \u0641\u062d\u0635 \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u0639\u0645\u062f\u0627\u064b: \u0644\u0648 \u0633\u0628\u0642\u0647 \u0644\u0623\u0645\u0643\u0646 \u0645\u0639\u0631\u0641\u0629 \u0623\u064a\n\u0627\u0644\u0628\u064f\u0631\u062f \u0645\u0633\u062c\u064e\u0651\u0644\u0629 \u0641\u064a \u0627\u0644\u0646\u0638\u0627\u0645 \u0628\u0645\u062c\u0631\u062f \u0627\u062e\u062a\u0644\u0627\u0641 \u0627\u0644\u0631\u0633\u0627\u0644\u0629.",
+                "summary": "\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644",
+                "tags": [
+                    "\u0627\u0644\u0645\u0635\u0627\u062f\u0642\u0629"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "password"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        },
+                                        "user": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "relations": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "string",
+                                                                        "const": "roles"
+                                                                    }
+                                                                ],
+                                                                "minItems": 1,
+                                                                "maxItems": 1,
+                                                                "additionalItems": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "relations"
+                                                        ]
+                                                    }
+                                                },
+                                                "role_label": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0639\u0631\u0628\u064a \u0644\u0644\u062f\u0648\u0631 \u2014 \u0627\u0644\u0648\u0627\u062c\u0647\u0629 \u062a\u0639\u0631\u0636 \u0627\u0644\u0645\u0633\u0645\u0651\u0649 \u0644\u0627 \u0627\u0644\u0645\u0639\u0631\u0651\u0641 \u0627\u0644\u0628\u0631\u0645\u062c\u064a"
+                                                },
+                                                "permissions": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "email",
+                                                "is_active",
+                                                "roles",
+                                                "role_label",
+                                                "permissions"
+                                            ]
+                                        },
+                                        "platform_url": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "token",
+                                        "user",
+                                        "platform_url"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "const": "\u0639\u0630\u0631\u0627\u064b\u060c \u062a\u0645 \u062a\u0639\u0637\u064a\u0644 \u062d\u0633\u0627\u0628\u0643 \u0645\u0646 \u0642\u0628\u0644 \u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0646\u0638\u0627\u0645."
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                },
+                "security": []
+            }
+        },
+        "/me": {
+            "get": {
+                "operationId": "auth.me",
+                "summary": "\u0628\u064a\u0627\u0646\u0627\u062a \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u062d\u0627\u0644\u064a \u2014 \u062a\u0633\u062a\u062f\u0639\u064a\u0647\u0627 \u0627\u0644\u0648\u0627\u062c\u0647\u0629 \u0639\u0646\u062f \u0643\u0644 \u062a\u062d\u0645\u064a\u0644",
+                "tags": [
+                    "\u0627\u0644\u0645\u0635\u0627\u062f\u0642\u0629"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "user": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string"
+                                                },
+                                                "is_active": {
+                                                    "type": "boolean"
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "relations": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "string",
+                                                                        "const": "roles"
+                                                                    }
+                                                                ],
+                                                                "minItems": 1,
+                                                                "maxItems": 1,
+                                                                "additionalItems": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "relations"
+                                                        ]
+                                                    }
+                                                },
+                                                "role_label": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ],
+                                                    "description": "\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0639\u0631\u0628\u064a \u0644\u0644\u062f\u0648\u0631 \u2014 \u0627\u0644\u0648\u0627\u062c\u0647\u0629 \u062a\u0639\u0631\u0636 \u0627\u0644\u0645\u0633\u0645\u0651\u0649 \u0644\u0627 \u0627\u0644\u0645\u0639\u0631\u0651\u0641 \u0627\u0644\u0628\u0631\u0645\u062c\u064a"
+                                                },
+                                                "permissions": {
+                                                    "type": "array",
+                                                    "items": {}
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "email",
+                                                "is_active",
+                                                "roles",
+                                                "role_label",
+                                                "permissions"
+                                            ]
+                                        },
+                                        "platform_url": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "user",
+                                        "platform_url"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "operationId": "auth.logout",
+                "description": "\u064a\u062d\u0630\u0641 \u0627\u0644\u062a\u0648\u0643\u0646 \u0627\u0644\u0645\u0633\u062a\u0639\u0645\u0644 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u0637\u0644\u0628 \u0648\u062d\u062f\u0647 \u2014 \u0641\u062a\u0628\u0642\u0649 \u062c\u0644\u0633\u0627\u062a \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u0623\u062e\u0631\u0649\n\u0639\u0644\u0649 \u0623\u062c\u0647\u0632\u0629 \u0623\u062e\u0631\u0649 \u062a\u0639\u0645\u0644.",
+                "summary": "\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062e\u0631\u0648\u062c",
+                "tags": [
+                    "\u0627\u0644\u0645\u0635\u0627\u062f\u0642\u0629"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "const": "\u062a\u0645 \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062e\u0631\u0648\u062c."
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/articles": {
+            "get": {
+                "operationId": "article.index",
+                "description": "\u062a\u064f\u062c\u0644\u0628 \u0645\u0646 \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u0645\u0628\u0627\u0634\u0631\u0629. \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `articles.view` (\u0639\u0631\u0636 \u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a).\n\n\u0627\u0644\u0645\u0633\u0648\u062f\u0627\u062a \u0648\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a \u0627\u0644\u0645\u062c\u062f\u0648\u0644\u0629 \u062a\u0638\u0647\u0631 \u0639\u0628\u0631 `status`\u060c \u0644\u0623\u0646 \u062a\u0648\u0643\u0646 \u0627\u0644\u062e\u062f\u0645\u0629 \u0627\u0644\u0630\u064a \u062a\u062d\u0645\u0644\u0647\n\u0627\u0644\u0644\u0648\u062d\u0629 \u064a\u062e\u0635\u0651 \u062d\u0633\u0627\u0628 \u0645\u0634\u0631\u0641 \u0641\u064a \u0627\u0644\u0645\u0646\u0635\u0651\u0629. \u0623\u0645\u0627 \u0632\u0627\u0626\u0631 \u0627\u0644\u0645\u0646\u0635\u0651\u0629 \u0641\u0644\u0627 \u064a\u0631\u0649 \u0625\u0644\u0627 \u0627\u0644\u0645\u0646\u0634\u0648\u0631\u060c\n\u0648\u0627\u0644\u062d\u0627\u0631\u0633 \u0647\u0646\u0627\u0643 \u0644\u0627 \u0647\u0646\u0627.",
+                "summary": "\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a",
+                "tags": [
+                    "\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "\u0628\u062d\u062b \u0641\u064a \u0627\u0644\u0639\u0646\u0648\u0627\u0646 \u0648\u0627\u0644\u0645\u062d\u062a\u0648\u0649",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tag",
+                        "in": "query",
+                        "description": "\u062a\u0635\u0641\u064a\u0629 \u0628\u062a\u0635\u0646\u064a\u0641 \u0648\u0627\u062d\u062f (\u0627\u0644\u0645\u0639\u0631\u0651\u0641 \u0627\u0644\u0645\u062e\u062a\u0635\u0631 \u0644\u0644\u062a\u0635\u0646\u064a\u0641)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "\u062d\u0627\u0644\u0629 \u0627\u0644\u0645\u0642\u0627\u0644: published \u0623\u0648 draft \u0623\u0648 scheduled \u0623\u0648 all. \u062a\u064f\u0646\u0641\u064e\u0651\u0630 \u0641\u064a \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629\u060c \u0648\u0644\u0627 \u062a\u064f\u0631\u062c\u0639 \u063a\u064a\u0631 \u0627\u0644\u0645\u0646\u0634\u0648\u0631 \u0625\u0644\u0627 \u0644\u062d\u0633\u0627\u0628 \u0645\u0634\u0631\u0641 \u0641\u064a\u0647\u0627.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "\u0627\u0644\u062a\u0631\u062a\u064a\u0628: latest \u0623\u0648 oldest \u0623\u0648 title \u0623\u0648 views",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "\u0631\u0642\u0645 \u0627\u0644\u0635\u0641\u062d\u0629",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "\u0639\u062f\u062f \u0627\u0644\u0646\u062a\u0627\u0626\u062c \u0641\u064a \u0627\u0644\u0635\u0641\u062d\u0629",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u0644\u0647\u0630\u064a \u0627\u0644\u0639\u0645\u0644\u064a\u0629.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "\u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "article.store",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `articles.create` (\u0625\u0636\u0627\u0641\u0629 \u0645\u0642\u0627\u0644). \u062a\u064f\u0633\u062c\u064e\u0651\u0644 \u0627\u0644\u0639\u0645\u0644\u064a\u0629 \u0641\u064a \u0633\u062c\u0644\u0651\n\u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a \u0628\u0627\u0633\u0645 \u0627\u0644\u0645\u0646\u0641\u0651\u0630\u060c \u0633\u0648\u0627\u0621 \u0646\u062c\u062d\u062a \u0623\u0648 \u0631\u0641\u0636\u062a\u0647\u0627 \u0627\u0644\u0645\u0646\u0635\u0651\u0629.",
+                "summary": "\u0625\u0646\u0634\u0627\u0621 \u0645\u0642\u0627\u0644 \u0641\u064a \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629",
+                "tags": [
+                    "\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "image": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "Maximum file size: 5120 kilobytes."
+                                    },
+                                    "tags": {
+                                        "type": [
+                                            "array",
+                                            "null"
+                                        ],
+                                        "items": {
+                                            "type": "string",
+                                            "maxLength": 50
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "content"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "201": {
+                        "description": "\u0623\u064f\u0646\u0634\u0626 \u0627\u0644\u0645\u0642\u0627\u0644 \u0641\u064a \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u0644\u0647\u0630\u064a \u0627\u0644\u0639\u0645\u0644\u064a\u0629.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "\u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/articles/categories": {
+            "get": {
+                "operationId": "article.categories",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `articles.view` (\u0639\u0631\u0636 \u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a) \u2014 \u0644\u0623\u0646\u0647\u0627 \u062a\u064f\u0633\u062a\u0639\u0645\u0644 \u0641\u064a\n\u0646\u0645\u0648\u0630\u062c\u064e\u064a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0645\u0642\u0627\u0644 \u0648\u062a\u0639\u062f\u064a\u0644\u0647.\n\n\u062a\u064f\u0642\u0631\u0623 \u0645\u0646 \u0627\u0644\u0645\u0646\u0635\u0651\u0629 \u0639\u0646\u062f \u0643\u0644 \u0637\u0644\u0628 \u0648\u0644\u0627 \u062a\u064f\u062e\u0632\u064e\u0651\u0646 \u0646\u0633\u062e\u0629 \u0645\u0646\u0647\u0627 \u0647\u0646\u0627: \u0623\u064a \u062a\u0635\u0646\u064a\u0641 \u064a\u064f\u0636\u0627\u0641\n\u0647\u0646\u0627\u0643 \u064a\u0638\u0647\u0631 \u0641\u0648\u0631\u0627\u064b\u060c \u0648\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u062a\u0635\u0646\u064a\u0641\u0627\u062a \u062a\u0628\u0642\u0649 \u0641\u064a \u0627\u0644\u0645\u0646\u0635\u0651\u0629 \u0648\u062d\u062f\u0647\u0627.",
+                "summary": "\u062a\u0635\u0646\u064a\u0641\u0627\u062a \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629",
+                "tags": [
+                    "\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u0644\u0647\u0630\u064a \u0627\u0644\u0639\u0645\u0644\u064a\u0629.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "\u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/articles/{slug}": {
+            "get": {
+                "operationId": "article.show",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `articles.view` (\u0639\u0631\u0636 \u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a).",
+                "summary": "\u062a\u0641\u0627\u0635\u064a\u0644 \u0645\u0642\u0627\u0644 \u0648\u0627\u062d\u062f",
+                "tags": [
+                    "\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u0644\u0647\u0630\u064a \u0627\u0644\u0639\u0645\u0644\u064a\u0629.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "\u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "operationId": "article.update",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `articles.update` (\u062a\u0639\u062f\u064a\u0644 \u0645\u0642\u0627\u0644). \u0627\u0644\u062d\u0642\u0648\u0644 \u0627\u0644\u0645\u0631\u0633\u064e\u0644\u0629 \u0641\u0642\u0637 \u0647\u064a\n\u0627\u0644\u062a\u064a \u062a\u064f\u0639\u062f\u064e\u0651\u0644 \u2014 \u0623\u064a \u062d\u0642\u0644 \u063a\u0627\u0626\u0628 \u064a\u0628\u0642\u0649 \u0643\u0645\u0627 \u0647\u0648 \u0641\u064a \u0627\u0644\u0645\u0646\u0635\u0651\u0629.",
+                "summary": "\u062a\u0639\u062f\u064a\u0644 \u0645\u0642\u0627\u0644",
+                "tags": [
+                    "\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ]
+                                    },
+                                    "image": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "binary",
+                                        "contentMediaType": "application/octet-stream",
+                                        "description": "Maximum file size: 5120 kilobytes."
+                                    },
+                                    "tags": {
+                                        "type": [
+                                            "array",
+                                            "null"
+                                        ],
+                                        "items": {
+                                            "type": "string",
+                                            "maxLength": 50
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u0644\u0647\u0630\u064a \u0627\u0644\u0639\u0645\u0644\u064a\u0629.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "\u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "article.destroy",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `articles.delete` (\u062d\u0630\u0641 \u0645\u0642\u0627\u0644). \u0648\u0645\u062d\u0627\u0648\u0644\u0629 \u0627\u0644\u062d\u0630\u0641 \u0628\u0644\u0627 \u0647\u0630\u064a\n\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u062a\u064f\u0631\u0641\u0636 \u0628\u0627\u0644\u0631\u0645\u0632 403 \u0648\u062a\u064f\u0633\u062c\u064e\u0651\u0644 \u0641\u064a \u0633\u062c\u0644\u0651 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a \u0643\u0645\u062d\u0627\u0648\u0644\u0629 \u0641\u0627\u0634\u0644\u0629.",
+                "summary": "\u062d\u0630\u0641 \u0645\u0642\u0627\u0644 \u0645\u0646 \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629",
+                "tags": [
+                    "\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u0644\u0647\u0630\u064a \u0627\u0644\u0639\u0645\u0644\u064a\u0629.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "\u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/articles/{slug}/publish": {
+            "post": {
+                "operationId": "article.publish",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `articles.publish` (\u0646\u0634\u0631 \u0645\u0642\u0627\u0644). \u0625\u062c\u0631\u0627\u0621 \u0645\u0633\u062a\u0642\u0644 \u0644\u0627 \u062a\u0639\u062f\u064a\u0644\u064c\n\u0639\u0627\u0645: \u0632\u0631\u0651 \u0648\u0627\u062d\u062f \u0641\u064a \u0627\u0644\u0642\u0627\u0626\u0645\u0629\u060c \u0648\u062d\u0627\u0631\u0633 \u0639\u0644\u0649 \u0627\u0644\u0645\u0633\u0627\u0631 \u0646\u0641\u0633\u0647\u060c \u0648\u0633\u0637\u0631 \u0635\u0631\u064a\u062d \u0641\u064a \u0627\u0644\u0633\u062c\u0644\u0651 \u2014\n\u0641\u0644\u0627 \u064a\u062e\u062a\u0641\u064a \u00ab\u0646\u0634\u0631 \u0645\u0642\u0627\u0644\u00bb \u062f\u0627\u062e\u0644 \u00ab\u062a\u0639\u062f\u064a\u0644 \u0645\u0642\u0627\u0644\u00bb.",
+                "summary": "\u0646\u0634\u0631 \u0645\u0642\u0627\u0644",
+                "tags": [
+                    "\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0635\u0644\u0627\u062d\u064a\u0629 \u0646\u0634\u0631 \u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "\u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/articles/{slug}/draft": {
+            "post": {
+                "operationId": "article.draft",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `articles.draft` (\u0633\u062d\u0628 \u0627\u0644\u0646\u0634\u0631). \u0627\u0644\u0645\u0642\u0627\u0644 \u064a\u062e\u062a\u0641\u064a \u0639\u0646 \u0632\u0648\u0651\u0627\u0631\n\u0627\u0644\u0645\u0646\u0635\u0651\u0629 \u0641\u0648\u0631\u0627\u064b \u0648\u0644\u0627 \u062a\u064f\u062d\u0630\u0641 \u0628\u064a\u0627\u0646\u0627\u062a\u0647\u060c \u0648\u064a\u0645\u0643\u0646 \u0646\u0634\u0631\u0647 \u0645\u0646 \u062c\u062f\u064a\u062f \u0641\u064a \u0623\u064a \u0648\u0642\u062a.",
+                "summary": "\u0633\u062d\u0628 \u0627\u0644\u0646\u0634\u0631 \u2014 \u0625\u0631\u062c\u0627\u0639 \u0627\u0644\u0645\u0642\u0627\u0644 \u0625\u0644\u0649 \u0645\u0633\u0648\u062f\u0629",
+                "tags": [
+                    "\u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a"
+                ],
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0635\u0644\u0627\u062d\u064a\u0629 \u0633\u062d\u0628 \u0627\u0644\u0646\u0634\u0631.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "\u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/meta": {
+            "get": {
+                "operationId": "user.meta",
+                "description": "\u0627\u0644\u062d\u0633\u0627\u0628 \u064a\u062a\u0645 \u0641\u064a \u0627\u0644\u062e\u0627\u062f\u0645 \u0644\u0627 \u0641\u064a \u0627\u0644\u0648\u0627\u062c\u0647\u0629: \u0644\u0648 \u062a\u0631\u0643\u0646\u0627 React \u062a\u0642\u0631\u0651\u0631 \u0623\u064a \u062f\u0648\u0631\n\u062a\u0639\u0631\u0636\u0647 \u0644\u0635\u0627\u0631 \u0645\u0646\u0637\u0642 \u0627\u0644\u062a\u0641\u0648\u064a\u0636 \u0645\u0643\u0631\u064e\u0651\u0631\u0627\u064b \u0641\u064a \u0645\u0643\u0627\u0646\u064a\u0646\u060c \u0648\u0623\u064a \u0627\u062e\u062a\u0644\u0627\u0641 \u0628\u064a\u0646\u0647\u0645\u0627 \u062b\u063a\u0631\u0629.",
+                "summary": "\u0627\u0644\u0623\u062f\u0648\u0627\u0631 \u0648\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0627\u062a \u0627\u0644\u0645\u062a\u0627\u062d\u0629\u060c \u0648\u0645\u0627 \u064a\u062d\u0642\u0651 \u0644\u0644\u0645\u0633\u062a\u062e\u062f\u0645 \u0627\u0644\u062d\u0627\u0644\u064a \u0645\u0646\u062d\u0647",
+                "tags": [
+                    "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "roles": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "label": {
+                                                        "type": "string"
+                                                    },
+                                                    "level": {
+                                                        "type": "integer"
+                                                    },
+                                                    "assignable": {
+                                                        "type": "string"
+                                                    },
+                                                    "permissions": {
+                                                        "type": "array",
+                                                        "description": "\u0645\u0627 \u064a\u0645\u0646\u062d\u0647 \u0627\u0644\u062f\u0648\u0631: \u0627\u0644\u0648\u0627\u062c\u0647\u0629 \u062a\u0642\u0641\u0644 \u0647\u0630\u064a \u0627\u0644\u0635\u0646\u0627\u062f\u064a\u0642 \u0641\u0648\u0631\u0627\u064b \u0639\u0646\u062f \u062a\u0628\u062f\u064a\u0644 \u0627\u0644\u062f\u0648\u0631",
+                                                        "items": {}
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "label",
+                                                    "level",
+                                                    "assignable",
+                                                    "permissions"
+                                                ]
+                                            }
+                                        },
+                                        "permissions": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "label": {
+                                                        "type": "string"
+                                                    },
+                                                    "grantable": {
+                                                        "type": "boolean",
+                                                        "description": "\u0644\u0627 \u062a\u0645\u0646\u062d \u0645\u0627 \u0644\u0627 \u062a\u0645\u0644\u0643 \u2014 \u0627\u0644\u0648\u0627\u062c\u0647\u0629 \u062a\u064f\u0639\u0637\u0651\u0644 \u0645\u0627 \u0644\u0627 \u064a\u062d\u0642\u0651 \u0644\u0647\u060c \u0648\u0627\u0644\u062e\u0627\u062f\u0645 \u064a\u0631\u0641\u0636\u0647 \u0623\u064a\u0636\u0627\u064b."
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "label",
+                                                    "grantable"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "roles",
+                                        "permissions"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/users": {
+            "get": {
+                "operationId": "user.index",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `users.manage` (\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646). \u0627\u0644\u0623\u0639\u0644\u0649 \u0645\u0633\u062a\u0648\u0649 \u0623\u0648\u0644\u0627\u064b\n\u062b\u0645 \u0627\u0644\u0623\u062d\u062f\u062b\u060c \u0648\u0627\u0644\u062a\u0631\u062a\u064a\u0628 \u064a\u0642\u0639 \u0641\u064a \u0642\u0627\u0639\u062f\u0629 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a \u0641\u0644\u0627 \u064a\u0646\u0643\u0633\u0631 \u0645\u0639 \u0627\u0644\u062a\u0631\u0642\u064a\u0645.",
+                "summary": "\u0642\u0627\u0626\u0645\u0629 \u0645\u0633\u062a\u062e\u062f\u0645\u064a \u0646\u0638\u0627\u0645 \u0627\u0644\u0625\u062f\u0627\u0631\u0629",
+                "tags": [
+                    "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "\u0628\u062d\u062b \u0628\u0627\u0644\u0627\u0633\u0645 \u0623\u0648 \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "\u062a\u0635\u0641\u064a\u0629 \u0628\u0627\u0644\u062d\u0627\u0644\u0629: active \u0623\u0648 inactive",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "last_page",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "user.store",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `users.manage` (\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646). \u0648\u0644\u0627 \u064a\u0645\u0643\u0646 \u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628\n\u0628\u062f\u0648\u0631 \u0641\u064a \u0645\u0633\u062a\u0648\u0627\u0643 \u0623\u0648 \u0623\u0639\u0644\u0649\u060c \u0648\u0644\u0627 \u0645\u0646\u062d\u0647 \u0635\u0644\u0627\u062d\u064a\u0629 \u0644\u0627 \u062a\u0645\u0644\u0643\u0647\u0627 \u0623\u0646\u062a.\n\n\u0647\u0624\u0644\u0627\u0621 \u0645\u0633\u062a\u062e\u062f\u0645\u0648 \u0646\u0638\u0627\u0645 \u0627\u0644\u0625\u062f\u0627\u0631\u0629 \u2014 \u0644\u0627 \u0639\u0644\u0627\u0642\u0629 \u0644\u0647\u0645 \u0628\u0645\u0633\u062a\u062e\u062f\u0645\u064a \u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u0627\u0644\u0639\u0627\u0645\u0651\u064a\u0646.",
+                "summary": "\u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628 \u0641\u064a \u0646\u0638\u0627\u0645 \u0627\u0644\u0625\u062f\u0627\u0631\u0629",
+                "tags": [
+                    "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}": {
+            "get": {
+                "operationId": "user.show",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `users.manage` (\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646).",
+                "summary": "\u062a\u0641\u0627\u0635\u064a\u0644 \u0645\u0633\u062a\u062e\u062f\u0645 \u0648\u0627\u062d\u062f",
+                "tags": [
+                    "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "user.update",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `users.manage` (\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646). \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u0627\u062e\u062a\u064a\u0627\u0631\u064a\u0629 \u2014\n\u062a\u0631\u0643\u0647\u0627 \u0641\u0627\u0631\u063a\u0629 \u064a\u064f\u0628\u0642\u064a \u0627\u0644\u062d\u0627\u0644\u064a\u0629. \u0648\u0644\u0627 \u062a\u064f\u0633\u062c\u064e\u0651\u0644 \u0642\u064a\u0645\u062a\u0647\u0627 \u0641\u064a \u0633\u062c\u0644\u0651 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a \u0625\u0637\u0644\u0627\u0642\u0627\u064b\u060c\n\u064a\u064f\u0633\u062c\u064e\u0651\u0644 \u0623\u0646\u0647\u0627 \u062a\u063a\u064a\u0651\u0631\u062a \u0641\u0642\u0637.",
+                "summary": "\u062a\u0639\u062f\u064a\u0644 \u0628\u064a\u0627\u0646\u0627\u062a \u062d\u0633\u0627\u0628",
+                "tags": [
+                    "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}/toggle-active": {
+            "post": {
+                "operationId": "user.toggleActive",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `users.manage` (\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646)\u060c \u0645\u0639 \u0627\u0644\u0647\u0631\u0645\u064a\u0629: \u0644\u0627 \u064a\u0645\u0643\u0646\n\u062a\u0639\u0637\u064a\u0644 \u0645\u064e\u0646 \u0647\u0648 \u0641\u064a \u0645\u0633\u062a\u0648\u0627\u0643 \u0623\u0648 \u0623\u0639\u0644\u0649\u060c \u0648\u0644\u0627 \u062a\u0639\u0637\u064a\u0644 \u0646\u0641\u0633\u0643. **\u0644\u0627 \u062a\u064f\u062d\u0630\u0641 \u0623\u064a \u0628\u064a\u0627\u0646\u0627\u062a** \u2014\n\u062a\u064f\u0644\u063a\u0649 \u062c\u0644\u0633\u0627\u062a \u0627\u0644\u062d\u0633\u0627\u0628 \u0627\u0644\u0645\u0641\u062a\u0648\u062d\u0629 \u0641\u0648\u0631\u0627\u064b \u0648\u064a\u0645\u0643\u0646 \u0625\u0639\u0627\u062f\u0629 \u062a\u0641\u0639\u064a\u0644\u0647 \u0641\u064a \u0623\u064a \u0648\u0642\u062a.",
+                "summary": "\u062a\u0641\u0639\u064a\u0644 \u062d\u0633\u0627\u0628 \u0623\u0648 \u062a\u0639\u0637\u064a\u0644\u0647",
+                "tags": [
+                    "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}/role": {
+            "put": {
+                "operationId": "user.updateRole",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `roles.manage` (\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0623\u062f\u0648\u0627\u0631 \u0648\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0627\u062a). \u0644\u0627 \u064a\u0645\u0643\u0646 \u0625\u0633\u0646\u0627\u062f\n\u062f\u0648\u0631 \u0641\u064a \u0645\u0633\u062a\u0648\u0627\u0643 \u0623\u0648 \u0623\u0639\u0644\u0649 \u2014 \u0645\u0646\u0639\u0627\u064b \u0644\u062a\u0635\u0639\u064a\u062f \u0627\u0644\u0627\u0645\u062a\u064a\u0627\u0632\u0627\u062a.",
+                "summary": "\u062a\u063a\u064a\u064a\u0631 \u062f\u0648\u0631 \u0645\u0633\u062a\u062e\u062f\u0645",
+                "tags": [
+                    "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "role": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "role"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/users/{user}/permissions": {
+            "put": {
+                "operationId": "user.updatePermissions",
+                "description": "permissions \u0647\u0646\u0627 \u0647\u064a \u00ab\u0627\u0644\u0645\u062c\u0645\u0648\u0639\u0629 \u0627\u0644\u0641\u0639\u0651\u0627\u0644\u0629\u00bb \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u2014 \u0645\u0627 \u064a\u0646\u0628\u063a\u064a \u0623\u0646 \u064a\u0645\u0644\u0643\u0647\n\u0628\u0639\u062f \u0627\u0644\u062d\u0641\u0638 \u2014 \u0644\u0627 \u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a. \u0648\u0627\u0644\u062e\u0627\u062f\u0645 \u064a\u0634\u062a\u0642 \u0645\u0646\u0647\u0627 \u0627\u0644\u0637\u0631\u0641\u064a\u0646:\n\n  \u0627\u0644\u0645\u0646\u062d  = \u0627\u0644\u0645\u0637\u0644\u0648\u0628  \u2212  \u0645\u0627 \u064a\u0645\u0646\u062d\u0647 \u0627\u0644\u062f\u0648\u0631   (\u0635\u0644\u0627\u062d\u064a\u0629 \u0632\u0627\u0626\u062f\u0629 \u0641\u0648\u0642 \u0627\u0644\u062f\u0648\u0631)\n  \u0627\u0644\u062d\u062c\u0628  = \u0645\u0627 \u064a\u0645\u0646\u062d\u0647 \u0627\u0644\u062f\u0648\u0631  \u2212  \u0627\u0644\u0645\u0637\u0644\u0648\u0628   (\u0627\u0633\u062a\u062b\u0646\u0627\u0621 \u0645\u0646 \u0627\u0644\u062f\u0648\u0631)\n\n\u0642\u0627\u0626\u0645\u0629 \u0648\u0627\u062d\u062f\u0629 \u0644\u0627 \u0642\u0627\u0626\u0645\u062a\u064a\u0646: \u0627\u0644\u0648\u0627\u062c\u0647\u0629 \u0635\u0646\u0627\u062f\u064a\u0642 \u0627\u062e\u062a\u064a\u0627\u0631\u060c \u0648\u062d\u0627\u0644\u0629 \u0627\u0644\u0635\u0646\u062f\u0648\u0642 \u0647\u064a\n\u0627\u0644\u062d\u0642\u064a\u0642\u0629 \u0643\u0627\u0645\u0644\u0629\u064b. \u0648\u0644\u0648 \u0623\u0631\u0633\u0644\u0646\u0627 \u0642\u0627\u0626\u0645\u062a\u064a\u0646 \u0644\u0623\u0645\u0643\u0646 \u0623\u0646 \u062a\u062a\u0646\u0627\u0642\u0636\u0627.",
+                "summary": "\u0636\u0628\u0637 \u0635\u0644\u0627\u062d\u064a\u0627\u062a \u0645\u0633\u062a\u062e\u062f\u0645",
+                "tags": [
+                    "\u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u0648\u0646"
+                ],
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "description": "The user ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "permissions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "permissions"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/audit-logs": {
+            "get": {
+                "operationId": "auditLog.index",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `audit.view` (\u0639\u0631\u0636 \u0633\u062c\u0644\u0651 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a) \u2014 \u0648\u0647\u064a \u0635\u0644\u0627\u062d\u064a\u0629 \u0641\u0631\u062f\u064a\u0629\n\u064a\u0645\u0643\u0646 \u0645\u0646\u062d\u0647\u0627 \u0644\u0634\u062e\u0635 \u0628\u0639\u064a\u0646\u0647 \u062f\u0648\u0646 \u062a\u0631\u0642\u064a\u062a\u0647 \u0625\u0644\u0649 \u0645\u0634\u0631\u0641. \u0627\u0644\u0635\u0641\u0648\u0641 \u062a\u064f\u0643\u062a\u0628 \u0648\u0644\u0627 \u062a\u064f\u0639\u062f\u064e\u0651\u0644 \u0648\u0644\u0627\n\u062a\u064f\u062d\u0630\u0641\u060c \u0648\u0644\u0627 \u062a\u062d\u0648\u064a \u0643\u0644\u0645\u0627\u062a \u0645\u0631\u0648\u0631 \u0625\u0637\u0644\u0627\u0642\u0627\u064b.\n\n\u062a\u064f\u0631\u062c\u0639 \u0623\u064a\u0636\u0627\u064b `actors` (\u0642\u0627\u0626\u0645\u0629 \u0627\u0644\u0645\u0646\u0641\u0651\u0630\u064a\u0646 \u0644\u0644\u062a\u0635\u0641\u064a\u0629) \u0648`labels` (\u0645\u0633\u0645\u0651\u064a\u0627\u062a\n\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0627\u062a \u0648\u0627\u0644\u0623\u062f\u0648\u0627\u0631 \u0628\u0627\u0644\u0639\u0631\u0628\u064a\u0629) \u0625\u0644\u0649 \u062c\u0627\u0646\u0628 `data`.",
+                "summary": "\u0633\u062c\u0644\u0651 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a",
+                "tags": [
+                    "\u0633\u062c\u0644\u0651 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a"
+                ],
+                "parameters": [
+                    {
+                        "name": "action",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "current_page": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AuditLog"
+                                            }
+                                        },
+                                        "first_page_url": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        },
+                                        "from": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ],
+                                            "minimum": 1
+                                        },
+                                        "last_page_url": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        },
+                                        "last_page": {
+                                            "type": "integer",
+                                            "minimum": 1
+                                        },
+                                        "links": {
+                                            "type": "array",
+                                            "description": "Generated paginator links.",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "url": {
+                                                        "type": [
+                                                            "string",
+                                                            "null"
+                                                        ]
+                                                    },
+                                                    "label": {
+                                                        "type": "string"
+                                                    },
+                                                    "active": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "url",
+                                                    "label",
+                                                    "active"
+                                                ]
+                                            }
+                                        },
+                                        "next_page_url": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        },
+                                        "path": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ],
+                                            "description": "Base path for paginator generated URLs."
+                                        },
+                                        "per_page": {
+                                            "type": "integer",
+                                            "description": "Number of items shown per page.",
+                                            "minimum": 0
+                                        },
+                                        "prev_page_url": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        },
+                                        "to": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ],
+                                            "description": "Number of the last item in the slice.",
+                                            "minimum": 1
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "description": "Total number of items being paginated.",
+                                            "minimum": 0
+                                        },
+                                        "actors": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/User"
+                                            }
+                                        },
+                                        "labels": {
+                                            "type": "object",
+                                            "properties": {
+                                                "permissions": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "articles.view": {
+                                                            "type": "string",
+                                                            "const": "\u0639\u0631\u0636 \u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a"
+                                                        },
+                                                        "articles.create": {
+                                                            "type": "string",
+                                                            "const": "\u0625\u0636\u0627\u0641\u0629 \u0645\u0642\u0627\u0644"
+                                                        },
+                                                        "articles.update": {
+                                                            "type": "string",
+                                                            "const": "\u062a\u0639\u062f\u064a\u0644 \u0645\u0642\u0627\u0644"
+                                                        },
+                                                        "articles.delete": {
+                                                            "type": "string",
+                                                            "const": "\u062d\u0630\u0641 \u0645\u0642\u0627\u0644"
+                                                        },
+                                                        "articles.publish": {
+                                                            "type": "string",
+                                                            "const": "\u0646\u0634\u0631 \u0645\u0642\u0627\u0644"
+                                                        },
+                                                        "articles.draft": {
+                                                            "type": "string",
+                                                            "const": "\u0633\u062d\u0628 \u0627\u0644\u0646\u0634\u0631 (\u0625\u0631\u062c\u0627\u0639 \u0644\u0645\u0633\u0648\u062f\u0629)"
+                                                        },
+                                                        "analytics.view": {
+                                                            "type": "string",
+                                                            "const": "\u0639\u0631\u0636 \u0627\u0644\u0625\u062d\u0635\u0627\u0626\u064a\u0627\u062a"
+                                                        },
+                                                        "audit.view": {
+                                                            "type": "string",
+                                                            "const": "\u0639\u0631\u0636 \u0633\u062c\u0644\u0651 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a"
+                                                        },
+                                                        "users.manage": {
+                                                            "type": "string",
+                                                            "const": "\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646"
+                                                        },
+                                                        "roles.manage": {
+                                                            "type": "string",
+                                                            "const": "\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0623\u062f\u0648\u0627\u0631 \u0648\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0627\u062a"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "articles.view",
+                                                        "articles.create",
+                                                        "articles.update",
+                                                        "articles.delete",
+                                                        "articles.publish",
+                                                        "articles.draft",
+                                                        "analytics.view",
+                                                        "audit.view",
+                                                        "users.manage",
+                                                        "roles.manage"
+                                                    ]
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "permissions",
+                                                "roles"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "current_page",
+                                        "data",
+                                        "first_page_url",
+                                        "from",
+                                        "last_page_url",
+                                        "last_page",
+                                        "links",
+                                        "next_page_url",
+                                        "path",
+                                        "per_page",
+                                        "prev_page_url",
+                                        "to",
+                                        "total",
+                                        "actors",
+                                        "labels"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0635\u0644\u0627\u062d\u064a\u0629 \u0639\u0631\u0636 \u0633\u062c\u0644\u0651 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboard": {
+            "get": {
+                "operationId": "dashboard.index",
+                "description": "\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629: `analytics.view` (\u0639\u0631\u0636 \u0627\u0644\u0625\u062d\u0635\u0627\u0626\u064a\u0627\u062a).\n\n`counts` \u062a\u064f\u0642\u0631\u0623 \u0645\u0646 \u062a\u0631\u0642\u064a\u0645 \u0627\u0644\u0645\u0646\u0635\u0651\u0629 \u0644\u0627 \u0628\u0639\u062f\u0651 \u0627\u0644\u0635\u0641\u0648\u0641: \u0646\u0637\u0644\u0628 \u0635\u0641\u062d\u0629 \u0628\u0639\u0646\u0635\u0631 \u0648\u0627\u062d\u062f\n\u0648\u0646\u0623\u062e\u0630 `meta.total` \u2014 \u0641\u0644\u0627 \u0646\u0646\u0642\u0644 \u0622\u0644\u0627\u0641 \u0627\u0644\u0645\u0642\u0627\u0644\u0627\u062a \u0644\u0646\u0639\u062f\u0651\u0647\u0627.",
+                "summary": "\u0623\u0631\u0642\u0627\u0645 \u0627\u0644\u0645\u0646\u0635\u0651\u0629 \u0648\u0622\u062e\u0631 \u0627\u0644\u0639\u0645\u0644\u064a\u0627\u062a",
+                "tags": [
+                    "\u0644\u0648\u062d\u0629 \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "counts": {
+                                            "type": "object",
+                                            "properties": {
+                                                "all": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "published": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "draft": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                },
+                                                "scheduled": {
+                                                    "type": [
+                                                        "integer",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "all",
+                                                "published",
+                                                "draft",
+                                                "scheduled"
+                                            ]
+                                        },
+                                        "latest_articles": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "title": {
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "status_label": {
+                                                        "type": "string"
+                                                    },
+                                                    "views_count": {
+                                                        "type": "string"
+                                                    },
+                                                    "comments_count": {
+                                                        "type": "string"
+                                                    },
+                                                    "published_at": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "slug",
+                                                    "title",
+                                                    "status",
+                                                    "status_label",
+                                                    "views_count",
+                                                    "comments_count",
+                                                    "published_at"
+                                                ]
+                                            }
+                                        },
+                                        "most_viewed": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "title": {
+                                                        "type": "string"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "status_label": {
+                                                        "type": "string"
+                                                    },
+                                                    "views_count": {
+                                                        "type": "string"
+                                                    },
+                                                    "comments_count": {
+                                                        "type": "string"
+                                                    },
+                                                    "published_at": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "slug",
+                                                    "title",
+                                                    "status",
+                                                    "status_label",
+                                                    "views_count",
+                                                    "comments_count",
+                                                    "published_at"
+                                                ]
+                                            }
+                                        },
+                                        "top_categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "posts_count": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "slug",
+                                                    "posts_count"
+                                                ]
+                                            }
+                                        },
+                                        "latest_operations": {
+                                            "type": "array",
+                                            "description": "\u0646\u0641\u0633 \u0634\u0643\u0644 \u0635\u0641\u0648\u0641 /audit-logs \u0628\u0627\u0644\u0636\u0628\u0637\u060c \u0641\u062a\u0639\u064a\u062f \u0627\u0644\u0648\u0627\u062c\u0647\u0629 \u0627\u0633\u062a\u0639\u0645\u0627\u0644 \u062f\u0648\u0627\u0644\u0647\u0627\n\u0641\u064a \u0627\u0644\u062a\u0631\u062c\u0645\u0629 \u0648\u0627\u0644\u0639\u0631\u0636 \u0628\u0644\u0627 \u062a\u062d\u0648\u064a\u0644 \u062b\u0627\u0646\u064d.",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AuditLog"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "counts",
+                                        "latest_articles",
+                                        "most_viewed",
+                                        "top_categories",
+                                        "latest_operations"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "403": {
+                        "description": "\u0644\u0627 \u062a\u0645\u0644\u0643 \u0635\u0644\u0627\u062d\u064a\u0629 \u0639\u0631\u0636 \u0627\u0644\u0625\u062d\u0635\u0627\u0626\u064a\u0627\u062a.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "502": {
+                        "description": "\u0645\u0646\u0635\u0651\u0629 \u0627\u0644\u0645\u0639\u0631\u0641\u0629 \u063a\u064a\u0631 \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "http": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        },
+        "schemas": {
+            "AuditLog": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "user_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "action": {
+                        "type": "string"
+                    },
+                    "subject_type": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "subject_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "payload": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {}
+                    },
+                    "ip_address": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "succeeded": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "user_id",
+                    "action",
+                    "subject_type",
+                    "subject_id",
+                    "payload",
+                    "ip_address",
+                    "succeeded",
+                    "created_at"
+                ],
+                "title": "AuditLog"
+            },
+            "StoreUserRequest": {
+                "type": "object",
+                "description": "\u0625\u0646\u0634\u0627\u0621 \u0645\u0633\u062a\u062e\u062f\u0645 \u0641\u064a \u0646\u0638\u0627\u0645 \u0627\u0644\u0625\u062f\u0627\u0631\u0629.\n\n\u0627\u0644\u062a\u0641\u0648\u064a\u0636 \u0647\u0646\u0627 \u064a\u0641\u062d\u0635 \u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0629 \u0627\u0644\u0639\u0627\u0645\u0629 \u0641\u0642\u0637\u061b \u0642\u0648\u0627\u0639\u062f \u0627\u0644\u062a\u062f\u0631\u0651\u062c (\u0644\u0627 \u062a\u0635\u0646\u0639 \u0645\u0646 \u0647\u0648\n\u0623\u0642\u0648\u0649 \u0645\u0646\u0643) \u062a\u064f\u0641\u062d\u0635 \u0641\u064a \u0627\u0644\u0645\u062a\u062d\u0643\u0651\u0645 \u0644\u0623\u0646\u0647\u0627 \u062a\u062d\u062a\u0627\u062c \u0645\u0633\u062a\u0648\u0649 \u0627\u0644\u062f\u0648\u0631 \u0627\u0644\u0645\u0637\u0644\u0648\u0628.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 191
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 8
+                    },
+                    "role": {
+                        "type": "string"
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "role"
+                ],
+                "title": "StoreUserRequest"
+            },
+            "UpdateUserRequest": {
+                "type": "object",
+                "description": "\u062a\u0639\u062f\u064a\u0644 \u0628\u064a\u0627\u0646\u0627\u062a \u062d\u0633\u0627\u0628: \u0627\u0644\u0627\u0633\u0645 \u0648\u0627\u0644\u0628\u0631\u064a\u062f \u0648\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u0641\u0642\u0637.\n\n\u0627\u0644\u0623\u062f\u0648\u0627\u0631 \u0648\u0627\u0644\u0635\u0644\u0627\u062d\u064a\u0627\u062a \u0644\u0647\u0627 \u0645\u0633\u0627\u0631\u0627\u062a\u0647\u0627 \u0627\u0644\u062e\u0627\u0635\u0629 \u0644\u0623\u0646\u0647\u0627 \u062a\u062d\u0631\u0633\u0647\u0627 \u0635\u0644\u0627\u062d\u064a\u0629 \u0645\u062e\u062a\u0644\u0641\u0629\n(roles.manage) \u0648\u062a\u064f\u0646\u062a\u062c \u0633\u0637\u0631 \u062a\u062f\u0642\u064a\u0642 \u0645\u062e\u062a\u0644\u0641\u0627\u064b.",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 191
+                    },
+                    "password": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631 \u0627\u062e\u062a\u064a\u0627\u0631\u064a\u0629: \u062a\u0631\u0643\u0647\u0627 \u0641\u0627\u0631\u063a\u0629 \u064a\u0639\u0646\u064a \u0627\u0644\u0625\u0628\u0642\u0627\u0621 \u0639\u0644\u0649 \u0627\u0644\u0642\u062f\u064a\u0645\u0629.",
+                        "minLength": 8
+                    }
+                },
+                "title": "UpdateUserRequest"
+            },
+            "User": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "email_verified_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "email_verified_at",
+                    "created_at",
+                    "updated_at",
+                    "is_active"
+                ],
+                "title": "User"
+            }
+        },
+        "responses": {
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            },
+            "AuthenticationException": {
+                "description": "Unauthenticated",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            },
+            "AuthorizationException": {
+                "description": "Authorization error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ModelNotFoundException": {
+                "description": "Not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
