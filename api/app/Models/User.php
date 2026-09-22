@@ -15,12 +15,7 @@ use Spatie\Permission\Contracts\Permission as PermissionContract;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Traits\HasRoles;
 
-/**
- * مستخدم نظام إدارة المقالات.
- *
- * ليس مستخدم منصّة المعرفة: قاعدة بيانات مستقلة وحسابات مستقلة.
- * لا تُخلط الهويتان ولا تُربطان.
- */
+
 #[Fillable(['name', 'email', 'password', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -29,24 +24,26 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /*
-     * نستعير دالتَي spatie باسمين بديلين لنستدعيهما من داخل نسختينا أدناه.
-     * parent:: لا تصلح هنا: هاتان الدالتان من سمة (trait) لا من صنف أب،
-     * والسمة تُدمج في الصنف نفسه فلا وجود لها في سلسلة الوراثة.
+     * We borrow spatie's two methods under alias names so that our own versions
+     * below can call them. parent:: is no use here: these two methods come from
+     * a trait, not from a parent class, and a trait is merged into the class
+     * itself, so it has no place anywhere in the inheritance chain.
      */
     use HasRoles {
         HasRoles::hasPermissionTo as protected spatieHasPermissionTo;
         HasRoles::getAllPermissions as protected spatieGetAllPermissions;
     }
 
-    /** أعلى مستوى ممكن — يملكه مدير النظام وحده. */
+    /** The highest level there is — held by the system administrator alone. */
     public const LEVEL_SUPER_ADMIN = 100;
 
     /**
-     * الحارس الذي تعيش تحته أدوار هذا النظام وصلاحياته.
+     * The guard under which this system's roles and permissions live.
      *
-     * صريح لا افتراضي: بعد المصادقة بتوكن Sanctum يصير الحارس الافتراضي
-     * "sanctum"، فتفشل عمليات مثل Role::findByName لأن الأدوار مُنشأة
-     * تحت "web". تثبيته هنا يمنع هذا الالتباس في كل موضع.
+     * Stated explicitly rather than left to the default: once a request is
+     * authenticated with a Sanctum token the default guard becomes "sanctum",
+     * and calls such as Role::findByName then fail because the roles were
+     * created under "web". Pinning it here heads that confusion off everywhere.
      */
     public const PERMISSION_GUARD = 'web';
 
@@ -60,10 +57,11 @@ class User extends Authenticatable
     }
 
     /**
-     * مستوى سلطة المستخدم = أعلى مستوى بين أدواره.
+     * A user's level of authority = the highest level among their roles.
      *
-     * صفر لمن لا دور له، فلا يملك سلطة على أحد. وهذا هو الافتراض
-     * الآمن: الحساب بلا دور لا يُدير أحداً بدل أن يُدير الجميع.
+     * Zero for anyone who holds no role, so they have authority over nobody.
+     * That is the safe default: an account without a role manages no one,
+     * rather than managing everyone.
      */
     public function roleLevel(): int
     {
@@ -76,23 +74,25 @@ class User extends Authenticatable
     }
 
     /**
-     * هل يقف هذا المستخدم فوق ذاك؟
+     * Does this user stand above that one?
      *
-     * المقارنة صارمة (>) لا (>=): المتساويان في المستوى لا يملك
-     * أحدهما سلطة على الآخر — وهذا يمنع مشرفَين من تعطيل بعضهما.
+     * The comparison is strict (>) and not (>=): two people on the same level
+     * hold no authority over one another — which stops two admins from
+     * disabling each other.
      */
     public function outranks(self $other): bool
     {
         return $this->roleLevel() > $other->roleLevel();
     }
 
-    /* ---------------------------- الحجب الفردي --------------------------- */
+    /* ------------------------- Individual denial ------------------------- */
 
     /**
-     * صلاحيات محجوبة عن هذا المستخدم بعينه.
+     * Permissions withheld from this one particular user.
      *
-     * استثناء من دوره: «مشرف محتوى، لكن بلا حذف». البديل عن هذا هو إنشاء
-     * دور جديد لكل استثناء، فتتضخّم الأدوار حتى تفقد معناها.
+     * An exception to their role: "a content moderator, but with no deleting".
+     * The alternative is inventing a new role for every exception, until the
+     * roles multiply so far that they lose their meaning.
      */
     public function deniedPermissions(): BelongsToMany
     {
@@ -106,12 +106,13 @@ class User extends Authenticatable
     }
 
     /**
-     * الحجب يعلو على المنح.
+     * A denial outranks a grant.
      *
-     * نتجاوز دالة spatie نفسها لا نضيف فحصاً بجانبها: كل من
-     * Gate و $user->can() و middleware('permission:...') يمرّ من هنا،
-     * فيسري الحجب على المسارات كما يسري على الواجهة. ولو وضعناه في
-     * الواجهة وحدها لكان الزر مخفياً والمسار مفتوحاً.
+     * We override spatie's own method instead of adding a check beside it:
+     * Gate, $user->can() and middleware('permission:...') all pass through
+     * here, so the denial holds on the routes exactly as it holds in the
+     * interface. Had we put it in the interface alone, the button would be
+     * hidden while the route stayed open.
      */
     public function hasPermissionTo($permission, ?string $guardName = null): bool
     {
@@ -129,10 +130,11 @@ class User extends Authenticatable
     }
 
     /**
-     * ما يملكه فعلاً: صلاحيات الدور + المنح الفردي − المحجوب.
+     * What they actually hold: the role's permissions + the individual grants −
+     * the denials.
      *
-     * تُستعمل في العرض، ولا بدّ أن تطابق ما تسمح به hasPermissionTo أعلاه،
-     * وإلا عرضت الشاشة صلاحية يرفضها الخادم.
+     * It is used for display, and it must agree with what hasPermissionTo above
+     * allows; otherwise the screen shows a permission the server refuses.
      */
     public function getAllPermissions(): Collection
     {

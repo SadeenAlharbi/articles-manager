@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react'
 import { api } from '../lib/api'
-import { Alert, Badge, EmptyState, Spinner } from '../components/ui'
+import { Alert, Badge, EmptyState, SelectControl, Spinner } from '../components/ui'
 import { actionLabel } from '../lib/labels'
 
 /*
@@ -72,12 +72,10 @@ export default function AuditLogsPage() {
         مَن نفّذ العملية
       </label>
 
-      <select
+      <SelectControl
         id="actor"
         value={actorId}
         onChange={(event) => setActorId(event.target.value)}
-        className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm
-          outline-none transition-colors focus:border-brand-500"
       >
         <option value="">الجميع</option>
         {actors.map((actor) => (
@@ -85,14 +83,14 @@ export default function AuditLogsPage() {
             {actor.name}
           </option>
         ))}
-      </select>
+      </SelectControl>
 
       {actorId && (
         <button
           type="button"
           onClick={() => setActorId('')}
-          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-500
-            transition-colors hover:bg-ink-50"
+          className="inline-flex h-10 items-center rounded-lg px-2.5 text-xs font-semibold
+            text-ink-500 transition-colors hover:bg-ink-50"
         >
           إلغاء التصفية
         </button>
@@ -129,7 +127,7 @@ export default function AuditLogsPage() {
     <div>
       {filter}
 
-      <div className="overflow-x-auto rounded-2xl border border-ink-200 bg-white shadow-card">
+      <div className="overflow-x-auto rounded-2xl border border-ink-100 bg-white">
         <table className="w-full text-right text-sm">
           <thead className="border-b border-ink-100 bg-ink-50 text-xs text-ink-500">
             <tr>

@@ -10,16 +10,17 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * الصلاحيات والأدوار وحسابات العرض.
+ * Permissions, roles and the demo accounts.
  *
- * البذرة خاملة (idempotent): تشغيلها مرة أو عشراً يعطي النتيجة نفسها،
- * ولا تُنشئ تكراراً ولا تمسّ كلمات المرور القائمة.
+ * The seeder is idempotent: running it once or ten times gives the same result,
+ * creates no duplicates, and never touches existing passwords.
  */
 class RolesAndPermissionsSeeder extends Seeder
 {
     /**
-     * الصلاحيات بنمط "مورد.فعل" — إضافة صلاحية جديدة تصبح صفّاً في
-     * جدول، لا تعديلاً على بنية قاعدة البيانات ولا على الكود.
+     * Permissions follow a "resource.action" pattern — adding a new permission
+     * becomes a row in a table, not a change to the database structure nor to
+     * the code.
      */
     public const PERMISSIONS = [
         'articles.view' => 'عرض المقالات',
@@ -35,12 +36,13 @@ class RolesAndPermissionsSeeder extends Seeder
     ];
 
     /**
-     * الأدوار: الاسم العربي، المستوى، والصلاحيات.
+     * The roles: the Arabic label, the level, and the permissions.
      *
-     * المستوى يحدّد سلطة الدور على الأشخاص لا قدرته على المحتوى.
-     * لهذا يتساوى admin و super_admin في الصلاحيات ويختلفان في المستوى:
-     * كلاهما يفعل بالمقالات الشيء نفسه، لكن المشرف لا يعدّل حساب مدير
-     * النظام ولا يصنع واحداً مثله.
+     * The level decides a role's authority over people, not its power over
+     * content. That is why admin and super_admin hold identical permissions and
+     * differ only in level: both do exactly the same things to articles, but the
+     * admin cannot edit the system manager's account, nor create another one
+     * like it.
      */
     public const ROLES = [
         'super_admin' => [
@@ -84,8 +86,9 @@ class RolesAndPermissionsSeeder extends Seeder
     public function run(): void
     {
         /*
-         * spatie تخزّن الصلاحيات في ذاكرة مؤقتة لتسريع الفحص.
-         * بعد أي تغيير عليها يجب إفراغها، وإلا بقيت القيم القديمة.
+         * spatie caches the permissions to make checking them faster. After any
+         * change to them the cache must be flushed, or the old values stay in
+         * place.
          */
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
@@ -98,7 +101,8 @@ class RolesAndPermissionsSeeder extends Seeder
         foreach (self::ROLES as $name => $definition) {
             $role = Role::firstOrCreate(['name' => $name, 'guard_name' => User::PERMISSION_GUARD]);
 
-            // المستوى يُضبط صراحةً في كل تشغيل، فتصحيحه لاحقاً يكفيه db:seed.
+            // The level is set explicitly on every run, so correcting it later
+            // needs nothing more than db:seed.
             $role->forceFill(['level' => $definition['level']])->save();
 
             $role->syncPermissions(
@@ -110,10 +114,10 @@ class RolesAndPermissionsSeeder extends Seeder
     }
 
     /**
-     * حسابات عرض — كل واحدة تُجسّد حالة يُسأل عنها.
+     * Demo accounts — each one embodies a case that gets asked about.
      *
-     * firstOrCreate: كلمة المرور تُكتب عند الإنشاء فقط، فإعادة التشغيل
-     * لا تُعيد ضبط كلمة سر غيّرها أحد.
+     * firstOrCreate: the password is written only at creation, so re-running the
+     * seeder does not reset a password somebody has since changed.
      */
     private function seedDemoAccounts(): void
     {
@@ -136,10 +140,10 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         /*
-         * الحالة التي طلبها المشرف حرفياً: مستخدمة دورها "كاتبة" لكنها
-         * تملك صلاحية الحذف كاستثناء شخصي. منح مباشر (Direct Grant)
-         * يُخزَّن في model_has_permissions لا في الدور — فلا يتأثر به
-         * بقية الكُتّاب.
+         * The exact case the supervisor asked for: a user whose role is "author"
+         * but who holds the delete permission as a personal exception. A direct
+         * grant is stored in model_has_permissions rather than on the role — so
+         * the rest of the authors are unaffected by it.
          */
         $special = User::firstOrCreate(
             ['email' => 'author.plus@demo.test'],

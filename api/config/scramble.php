@@ -20,9 +20,10 @@ return [
      * Override with `servers`, or use Scramble::registerApi() for separate bases.
      */
     /*
-     * api/v1 لا api: نوثّق الإصدار الأول وحده. ولأنه تضمين ثابت واحد، يصير
-     * عنوان الخادم /api/v1 وتُختصر المسارات إلى /users و/articles — فيقرأ
-     * الجدول نظيفاً بلا تكرار البادئة في كل سطر.
+     * api/v1 rather than api: we document the first version alone. And because
+     * this is a single static include, the server URL becomes /api/v1 and the
+     * paths shorten to /users and /articles — so the table reads cleanly,
+     * without the prefix repeated on every line.
      */
     'api_path' => 'api/v1',
 
@@ -57,9 +58,10 @@ return [
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
         /*
-         * HTML صريح لا Markdown: عارض Stoplight يضع الوصف في حاوية LTR،
-         * فتقفز علامات الترقيم إلى الطرف الخطأ وتتبعثر المقاطع الإنجليزية
-         * داخل الجملة العربية. dir="rtl" يحسم الاتجاه للنص كلّه.
+         * Explicit HTML rather than Markdown: the Stoplight renderer puts the
+         * description inside an LTR container, so the punctuation jumps to the
+         * wrong end and the English fragments scatter inside the Arabic
+         * sentence. dir="rtl" settles the direction for the whole text.
          */
         'description' => implode('', [
             '<div dir="rtl" style="text-align:right">',
@@ -203,12 +205,14 @@ return [
      * ],
      */
     /*
-     * مُفعَّلة: تشتقّ التوثيق الأمني من الـmiddleware نفسه لا من تعليقات يدوية.
-     * كل مسار عليه auth:sanctum يُوثَّق بـbearer، ويظهر زر Authorize في الصفحة.
-     * والمسارات المفتوحة (POST /login) تُوسَم `security: []` صراحةً.
+     * Enabled: it derives the security documentation from the middleware itself
+     * rather than from hand-written annotations. Every route carrying
+     * auth:sanctum is documented as bearer, and the Authorize button appears on
+     * the page. Open routes (POST /login) are explicitly marked `security: []`.
      *
-     * الفائدة: مصدر الحقيقة هو المسار. لو أضفنا مساراً محمياً غداً ونسينا
-     * توثيقه، وثّق نفسه — بخلاف التعليقات اليدوية التي تتقادم بصمت.
+     * The benefit: the route is the source of truth. If we add a protected route
+     * tomorrow and forget to document it, it documents itself — unlike
+     * hand-written comments, which go stale in silence.
      */
     'security_strategy' => MiddlewareAuthSecurityStrategy::class,
 ];

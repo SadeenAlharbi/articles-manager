@@ -11,10 +11,11 @@ use Tests\Concerns\FakesKnowledgePlatform;
 use Tests\TestCase;
 
 /**
- * الاختبارات التي تُثبت أن الصلاحيات تُفرض في الخادم.
+ * The tests that prove permissions are enforced on the server.
  *
- * منصّة المعرفة مُزيَّفة هنا بـHttp::fake — الاختبار يجب أن يعمل
- * بلا إنترنت وبلا تشغيل المشروع الأول، ويقيس سلوكنا نحن لا سلوكها.
+ * The knowledge platform is faked here with Http::fake — the test has to run
+ * with no internet and without the first project running, and it measures our
+ * behaviour, not theirs.
  */
 class PermissionEnforcementTest extends TestCase
 {
@@ -35,14 +36,14 @@ class PermissionEnforcementTest extends TestCase
         ], Http::response(['data' => null, 'message' => 'ok'], 200));
     }
 
-    /* ----------------------------- المصادقة ----------------------------- */
+    /* --------------------------- Authentication -------------------------- */
 
     public function test_guest_cannot_reach_articles(): void
     {
         $this->getJson('/api/v1/articles')->assertStatus(401);
     }
 
-    /* ----------------------------- التفويض ------------------------------ */
+    /* --------------------------- Authorization --------------------------- */
 
     public function test_viewer_cannot_create_an_article(): void
     {
@@ -72,8 +73,9 @@ class PermissionEnforcementTest extends TestCase
     }
 
     /**
-     * جوهر المشروع: نفس الدور، نفس الطلب، نتيجة معاكسة —
-     * لأن الصلاحية مُنحت لهذي المستخدمة وحدها (Direct Grant).
+     * The heart of the project: the same role, the same request, the opposite
+     * outcome — because the permission was granted to this one user alone
+     * (a direct grant).
      */
     public function test_author_with_a_direct_grant_can_delete(): void
     {
@@ -92,7 +94,7 @@ class PermissionEnforcementTest extends TestCase
         $this->assertSame(['author'], $granted->getRoleNames()->all());
     }
 
-    /* --------------------------- سجلّ التدقيق ---------------------------- */
+    /* --------------------------- The audit log --------------------------- */
 
     public function test_audit_log_records_who_did_what(): void
     {
@@ -109,23 +111,24 @@ class PermissionEnforcementTest extends TestCase
         $this->assertSame('articles.create', $log->action);
         $this->assertSame('article-slug', $log->subject_id);
         $this->assertTrue($log->succeeded);
-        // payload يُخزَّن JSONB ويعود مصفوفةً تلقائياً.
+        // payload is stored as JSONB and comes back as an array automatically.
         $this->assertSame('مقال للتدقيق', $log->payload['title']);
     }
 
     /**
-     * السجلّ يُحرَس بصلاحية audit.view لا بالدور.
+     * The log is guarded by the audit.view permission, not by a role.
      *
-     * الفرق عملي: يمكن منح قراءة السجلّ لشخص بعينه دون ترقيته إلى
-     * مشرف — وهذا ما يستحيل في نظام يعتمد على الأدوار وحدها.
+     * The difference is practical: reading the log can be given to one specific
+     * person without promoting them to administrator — which is impossible in a
+     * system that relies on roles alone.
      */
     public function test_the_audit_log_is_guarded_by_a_permission_not_a_role(): void
     {
-        // مطّلعة: لا تملك audit.view
+        // A viewer: does not hold audit.view
         $this->actingAsAccount('viewer@demo.test');
         $this->getJson('/api/v1/audit-logs')->assertStatus(403);
 
-        // مشرفة محتوى: تملكها بحكم دورها، وليست مشرفة نظام
+        // A content moderator: holds it by way of the role, without being a system admin
         $this->actingAsAccount('moderator@demo.test');
         $this->getJson('/api/v1/audit-logs')->assertStatus(200);
 
@@ -134,7 +137,7 @@ class PermissionEnforcementTest extends TestCase
     }
 
     /**
-     * ويمكن منحها منحاً مباشراً لمن لا يملكها بدوره.
+     * And it can be handed out as a direct grant to someone whose role does not carry it.
      */
     public function test_a_direct_grant_alone_opens_the_audit_log(): void
     {
@@ -148,7 +151,7 @@ class PermissionEnforcementTest extends TestCase
         $this->getJson('/api/v1/audit-logs')->assertStatus(200);
     }
 
-    /* ------------------------------ التحقّق ------------------------------ */
+    /* ----------------------------- Validation --------------------------- */
 
     public function test_invalid_payload_is_rejected_before_reaching_the_platform(): void
     {
@@ -159,13 +162,15 @@ class PermissionEnforcementTest extends TestCase
             ->assertJsonValidationErrors(['title', 'content']);
     }
 
-    /* ---------------------------- النشر والسحب ---------------------------- */
+    /* -------------------- Publishing and unpublishing -------------------- */
 
     /**
-     * أخطر ثغرة كانت ممكنة: كاتب ينشر بلا صلاحية نشر.
+     * The most dangerous hole that was possible: an author publishing without
+     * the publish permission.
      *
-     * الواجهة لا تعرض له زرّ النشر، لكن إخفاء الزر ليس حماية — و curl يتجاوزه.
-     * فالحارس في الخادم: status=published يلزمه articles.publish.
+     * The interface does not show them a publish button, but hiding a button is
+     * not protection — and curl walks straight past it. So the guard sits on
+     * the server: status=published requires articles.publish.
      */
     public function test_an_author_cannot_publish_by_sending_the_status_directly(): void
     {
@@ -177,7 +182,7 @@ class PermissionEnforcementTest extends TestCase
             'status' => 'published',
         ])->assertStatus(422)->assertJsonValidationErrors('status');
 
-        // ولم يصل الطلب إلى المنصّة أصلاً
+        // And the request never reached the platform at all
         Http::assertNotSent(fn ($request) => $request->method() === 'POST');
     }
 
@@ -207,11 +212,13 @@ class PermissionEnforcementTest extends TestCase
     }
 
     /**
-     * النشر والسحب صلاحيتان منفصلتان، والبذرة تستعمل الفصل فعلاً:
-     * المحرّر يملك `articles.draft` ولا يملك `articles.publish`.
+     * Publishing and unpublishing are two separate permissions, and the seeder
+     * genuinely uses that separation: the editor holds `articles.draft` and
+     * does not hold `articles.publish`.
      *
-     * أي أنه يكتب ويسحب من النشر ليصحّح، والإظهار للعامة يبقى لمشرف المحتوى.
-     * لو كانت صلاحية واحدة لضاع هذا التمييز.
+     * That is, they write and pull a piece back out of publication to correct
+     * it, while making it public stays with the content moderator. Had it been
+     * a single permission, that distinction would have been lost.
      */
     public function test_an_editor_may_unpublish_but_not_publish(): void
     {
@@ -227,7 +234,7 @@ class PermissionEnforcementTest extends TestCase
 
         $this->postJson('/api/v1/articles/some-slug/publish')->assertOk();
 
-        // «نشر مقال» لا «تعديل مقال» — العملية تظهر باسمها في السجلّ
+        // "Published an article", not "edited" — the operation appears by its own name
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'articles.publish',
             'subject_id' => 'some-slug',

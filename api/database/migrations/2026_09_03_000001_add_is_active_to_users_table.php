@@ -5,10 +5,11 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * تعطيل حساب في نظام الإدارة.
+ * Disabling an account in the admin system.
  *
- * العمود منطقي وافتراضه true، فكل الحسابات القائمة تبقى نشطة كما هي
- * ولا تُمسّ أي بيانات. التعطيل حالة قابلة للعكس — لا حذف.
+ * The column is boolean and defaults to true, so every existing account stays
+ * active exactly as it was and no data is touched. Disabling is a reversible
+ * state — not a deletion.
  */
 return new class extends Migration
 {

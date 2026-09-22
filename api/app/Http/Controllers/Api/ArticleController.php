@@ -15,16 +15,20 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /*
- * كل مسار هنا ينقل الطلب إلى منصّة المعرفة — لا يُخزَّن مقال في هذي القاعدة.
- * ولهذا يظهر الرمز 502 في كل عملية: هو تعذّر الوصول إلى المنصّة، لا خطأ فينا.
+ * Every route here forwards the request on to the knowledge platform — not a
+ * single article is stored in this database. That is why a 502 can come out of
+ * any operation: it means the platform was unreachable, not that we failed.
  */
 #[Group('المقالات', 'إدارة مقالات منصّة المعرفة عبر واجهتها البرمجية.', weight: 1)]
 class ArticleController extends Controller
 {
-    /** حالات المقال كما تعرّفها منصّة المعرفة — القيم مطابقة لـPost::statuses(). */
+    /**
+     * Article statuses as the knowledge platform defines them — the values are
+     * identical to Post::statuses().
+     */
     private const STATUSES = ['draft', 'published', 'scheduled'];
 
-    /** الحالات التي تجعل المقال مرئياً للعامة، فتلزمها صلاحية النشر. */
+    /** Statuses that make an article public, and so require publish permission. */
     private const PUBLIC_STATUSES = ['published', 'scheduled'];
 
     public function __construct(
@@ -32,16 +36,18 @@ class ArticleController extends Controller
         private readonly AuditLogger $audit,
     ) {}
 
-    /* ------------------------------- قراءة ------------------------------- */
+    /* ------------------------------ Reading ------------------------------ */
 
     /**
-     * قائمة المقالات.
+     * List of articles.
      *
-     * تُجلب من منصّة المعرفة مباشرة. الصلاحية المطلوبة: `articles.view` (عرض المقالات).
+     * Fetched straight from the knowledge platform. Required permission:
+     * `articles.view` (view articles).
      *
-     * المسودات والمقالات المجدولة تظهر عبر `status`، لأن توكن الخدمة الذي تحمله
-     * اللوحة يخصّ حساب مشرف في المنصّة. أما زائر المنصّة فلا يرى إلا المنشور،
-     * والحارس هناك لا هنا.
+     * Drafts and scheduled articles are reachable through `status`, because the
+     * service token the dashboard carries belongs to an administrator account on
+     * the platform. A visitor to the platform itself sees nothing but published
+     * articles — that guard lives over there, not here.
      */
     #[QueryParameter('search', 'بحث في العنوان والمحتوى', type: 'string')]
     #[QueryParameter('tag', 'تصفية بتصنيف واحد (المعرّف المختصر للتصنيف)', type: 'string')]
@@ -62,9 +68,9 @@ class ArticleController extends Controller
     }
 
     /**
-     * تفاصيل مقال واحد.
+     * Details of a single article.
      *
-     * الصلاحية المطلوبة: `articles.view` (عرض المقالات).
+     * Required permission: `articles.view` (view articles).
      */
     #[ApiResponse(403, description: 'لا تملك الصلاحية المطلوبة لهذي العملية.')]
     #[ApiResponse(502, description: 'منصّة المعرفة غير متاحة حالياً.')]
@@ -74,13 +80,14 @@ class ArticleController extends Controller
     }
 
     /**
-     * تصنيفات منصّة المعرفة.
+     * Categories from the knowledge platform.
      *
-     * الصلاحية المطلوبة: `articles.view` (عرض المقالات) — لأنها تُستعمل في
-     * نموذجَي إضافة المقال وتعديله.
+     * Required permission: `articles.view` (view articles) — because they are
+     * used by both the create-article and the edit-article form.
      *
-     * تُقرأ من المنصّة عند كل طلب ولا تُخزَّن نسخة منها هنا: أي تصنيف يُضاف
-     * هناك يظهر فوراً، وإدارة التصنيفات تبقى في المنصّة وحدها.
+     * They are read from the platform on every request and no copy of them is
+     * kept here: any category added over there shows up immediately, and
+     * managing categories stays the platform's business alone.
      */
     #[ApiResponse(403, description: 'لا تملك الصلاحية المطلوبة لهذي العملية.')]
     #[ApiResponse(502, description: 'منصّة المعرفة غير متاحة حالياً.')]
@@ -89,13 +96,14 @@ class ArticleController extends Controller
         return $this->forward($this->platform->listTags());
     }
 
-    /* ------------------------------- كتابة ------------------------------- */
+    /* ------------------------------ Writing ------------------------------ */
 
     /**
-     * إنشاء مقال في منصّة المعرفة.
+     * Create an article on the knowledge platform.
      *
-     * الصلاحية المطلوبة: `articles.create` (إضافة مقال). تُسجَّل العملية في سجلّ
-     * العمليات باسم المنفّذ، سواء نجحت أو رفضتها المنصّة.
+     * Required permission: `articles.create` (add article). The operation is
+     * written to the audit log under the name of whoever performed it, whether
+     * it succeeded or the platform rejected it.
      */
     #[ApiResponse(201, description: 'أُنشئ المقال في منصّة المعرفة.')]
     #[ApiResponse(403, description: 'لا تملك الصلاحية المطلوبة لهذي العملية.')]
@@ -117,18 +125,20 @@ class ArticleController extends Controller
         ]);
 
         /*
-         * القواعد نسخة من قواعد المنصّة عمداً لا اختصاراً لها: نرفض الملف
-         * الضخم أو غير الصالح **قبل** رفعه عبر الشبكة، ولا نعتمد على رفضها
-         * وحده — طبقتان لا واحدة.
+         * These rules duplicate the platform's own deliberately, not as a
+         * shortcut around them: we reject an oversized or invalid file **before**
+         * pushing it across the network, and we do not lean on the platform's
+         * rejection alone — two layers, not one.
          */
         $image = $request->file('image');
         unset($data['image']);
 
         /*
-         * الإنشاء كمسودة متاح لكل من يملك articles.create — المسودة ليست نشراً.
-         * أما الإنشاء منشوراً فيلزمه articles.publish، وإلا لنشر الكاتبُ مقالاً
-         * بإرسال status=published مباشرة إلى المسار متجاوزاً واجهةً لا تعرض له
-         * الخيار أصلاً.
+         * Creating a draft is open to anyone holding articles.create — a draft is
+         * not a publication. Creating one already published requires
+         * articles.publish; without that, a writer could publish an article by
+         * sending status=published straight to the route, going around an
+         * interface that never offered them the option in the first place.
          */
         $this->assertMayPublish($request, $data['status'] ?? null);
 
@@ -151,10 +161,11 @@ class ArticleController extends Controller
     }
 
     /**
-     * تعديل مقال.
+     * Update an article.
      *
-     * الصلاحية المطلوبة: `articles.update` (تعديل مقال). الحقول المرسَلة فقط هي
-     * التي تُعدَّل — أي حقل غائب يبقى كما هو في المنصّة.
+     * Required permission: `articles.update` (edit article). Only the fields
+     * actually sent are modified — any field left out keeps whatever value it
+     * already has on the platform.
      */
     #[ApiResponse(403, description: 'لا تملك الصلاحية المطلوبة لهذي العملية.')]
     #[ApiResponse(502, description: 'منصّة المعرفة غير متاحة حالياً.')]
@@ -178,21 +189,24 @@ class ArticleController extends Controller
         unset($data['image']);
 
         /*
-         * نقرأ المقال قبل تعديله لنعرف ما تغيّر فعلاً.
+         * We read the article before editing it so we can tell what actually
+         * changed.
          *
-         * الواجهة ترسل النموذج كاملاً في كل حفظ، فـarray_keys($data) تعني
-         * «ما أُرسل» لا «ما تعدّل». وسجلّ يقول إن العنوان تغيّر وهو لم يتغيّر
-         * سجلٌّ كاذب — ولو سُئل «مَن غيّر عنوان هذا المقال؟» لاتّهم بريئاً.
+         * The interface submits the whole form on every save, so array_keys($data)
+         * means "what was sent", not "what was edited". A log that says the title
+         * changed when it did not is a lying log — and if anyone ever asked "who
+         * changed this article's title?", it would accuse an innocent person.
          *
-         * والمقارنة هنا لا في React: لو تركناها للعميل لصار صدق السجلّ رهناً
-         * به، وأي عميل آخر — أو curl — يُفسده.
+         * The comparison belongs here and not in React: leaving it to the client
+         * would make the log's truthfulness depend on that client, and any other
+         * client — or curl — could spoil it.
          */
         $before = null;
 
         try {
             $before = $this->platform->getArticle($slug)->json('data');
         } catch (\Throwable) {
-            // أفضل جهد: تعذّر القراءة لا يمنع التعديل
+            // Best effort: a failed read must not stand in the way of the edit
         }
 
         $this->assertMayPublish($request, $data['status'] ?? null, $before['status'] ?? null);
@@ -205,13 +219,14 @@ class ArticleController extends Controller
             AuditLogger::SUBJECT_ARTICLE,
             $slug,
             [
-                // العنوان بعد التعديل كما أعادته المنصّة، وإلا المرسَل، وإلا السابق
+                // Title as the platform returned it, else the one sent, else the previous
                 'title' => $response->json('data.title')
                     ?? ($data['title'] ?? null)
                     ?? ($before['title'] ?? null),
                 /*
-                 * الصورة تُضاف إلى قائمة ما تغيّر يدوياً: لا يمكن مقارنة ملف
-                 * مرفوع بعنوان صورة قديمة، ووجود ملف جديد يعني التغيير بذاته.
+                 * The image is added to the changed list by hand: an uploaded
+                 * file cannot be compared against an old image URL, and the mere
+                 * presence of a new file is itself the change.
                  */
                 'fields' => $image === null
                     ? $this->changedFields($data, $before)
@@ -224,14 +239,15 @@ class ArticleController extends Controller
         return $this->forward($response);
     }
 
-    /* --------------------------- النشر والسحب --------------------------- */
+    /* -------------------- Publishing and unpublishing ------------------- */
 
     /**
-     * نشر مقال.
+     * Publish an article.
      *
-     * الصلاحية المطلوبة: `articles.publish` (نشر مقال). إجراء مستقل لا تعديلٌ
-     * عام: زرّ واحد في القائمة، وحارس على المسار نفسه، وسطر صريح في السجلّ —
-     * فلا يختفي «نشر مقال» داخل «تعديل مقال».
+     * Required permission: `articles.publish` (publish article). A standalone
+     * action, not a generic edit: one button in the list, a guard on the route
+     * itself, and an explicit line in the log — so that "published an article"
+     * never vanishes inside "edited an article".
      */
     #[ApiResponse(403, description: 'لا تملك صلاحية نشر المقالات.')]
     #[ApiResponse(502, description: 'منصّة المعرفة غير متاحة حالياً.')]
@@ -241,10 +257,11 @@ class ArticleController extends Controller
     }
 
     /**
-     * سحب النشر — إرجاع المقال إلى مسودة.
+     * Unpublish — return the article to draft.
      *
-     * الصلاحية المطلوبة: `articles.draft` (سحب النشر). المقال يختفي عن زوّار
-     * المنصّة فوراً ولا تُحذف بياناته، ويمكن نشره من جديد في أي وقت.
+     * Required permission: `articles.draft` (unpublish). The article disappears
+     * from the platform's visitors at once without any of its data being
+     * deleted, and it can be published again at any time.
      */
     #[ApiResponse(403, description: 'لا تملك صلاحية سحب النشر.')]
     #[ApiResponse(502, description: 'منصّة المعرفة غير متاحة حالياً.')]
@@ -254,28 +271,31 @@ class ArticleController extends Controller
     }
 
     /**
-     * حذف مقال من منصّة المعرفة.
+     * Delete an article from the knowledge platform.
      *
-     * الصلاحية المطلوبة: `articles.delete` (حذف مقال). ومحاولة الحذف بلا هذي
-     * الصلاحية تُرفض بالرمز 403 وتُسجَّل في سجلّ العمليات كمحاولة فاشلة.
+     * Required permission: `articles.delete` (delete article). An attempt to
+     * delete without it is refused with a 403 and recorded in the audit log as a
+     * failed attempt.
      */
     #[ApiResponse(403, description: 'لا تملك الصلاحية المطلوبة لهذي العملية.')]
     #[ApiResponse(502, description: 'منصّة المعرفة غير متاحة حالياً.')]
     public function destroy(Request $request, string $slug): JsonResponse
     {
         /*
-         * نقرأ العنوان قبل الحذف لا بعده: بعد الحذف يصير غير قابل للاسترجاع،
-         * فيبقى السجلّ يقول «حُذف mynaaa-alkhbr» بلا معنى لقارئه.
+         * We read the title before the delete, not after: once it is deleted it
+         * can no longer be retrieved, and the log would be left saying "deleted
+         * mynaaa-alkhbr", which means nothing to whoever reads it.
          *
-         * والقراءة أفضل جهد لا شرط: لو تعذّرت، نمضي في الحذف ونسجّل بلا عنوان.
-         * فشل القراءة لا يجوز أن يمنع عملية طلبها صاحب الصلاحية.
+         * The read is best effort, not a precondition: if it fails we go ahead
+         * with the delete and log without a title. A failed read must never block
+         * an operation that a permission holder asked for.
          */
         $title = null;
 
         try {
             $title = $this->platform->getArticle($slug)->json('data.title');
         } catch (\Throwable) {
-            // نتجاهل: العنوان تحسين للسجلّ لا شرط لصحّة الحذف
+            // Ignored: the title improves the log, it is not required for a valid delete
         }
 
         $response = $this->platform->deleteArticle($slug);
@@ -293,16 +313,18 @@ class ArticleController extends Controller
     }
 
     /**
-     * يرفض تغيير حالة النشر لمن لا يملك صلاحيته.
+     * Refuses a change of publication status to anyone without the right to it.
      *
-     * قاعدتان مختلفتان لأن العمليتين مختلفتان:
+     * Two different rules, because these are two different operations:
      *
-     *  - إظهار المقال للعامة (published / scheduled) يلزمه `articles.publish`.
-     *  - سحبُ منشورٍ إلى مسودة يلزمه `articles.draft`.
+     *  - Making an article public (published / scheduled) requires
+     *    `articles.publish`.
+     *  - Pulling a published article back to draft requires `articles.draft`.
      *
-     * وحفظ مقال جديد كمسودة ليس سحباً — لا يلزمه شيء زائد على articles.create.
-     * ولهذا نشترط أن يكون المقال منشوراً قبلها ($previous) لا مجرّد أن الحالة
-     * المطلوبة مسودة، وإلا لمُنع المحرّرُ من كتابة مسودة أصلاً.
+     * Saving a new article as a draft is not an unpublish — it requires nothing
+     * beyond articles.create. That is why we insist the article was published
+     * beforehand ($previous) rather than merely that the requested status is
+     * draft; otherwise an editor would be barred from writing a draft at all.
      */
     private function assertMayPublish(Request $request, ?string $requested, ?string $previous = null): void
     {
@@ -329,10 +351,11 @@ class ArticleController extends Controller
     }
 
     /**
-     * تغيير حالة المقال كإجراء مستقل.
+     * Change an article's status as a standalone action.
      *
-     * العنوان يُقرأ قبل التغيير لا بعده: السجلّ يجب أن يقول «نُشر ميناء الخبر»
-     * لا «نُشر mynaaa-alkhbr». والقراءة أفضل جهد — فشلها لا يمنع الإجراء.
+     * The title is read before the change, not after: the log has to say
+     * "published Mina Al-Khobar", not "published mynaaa-alkhbr". The read is
+     * best effort — its failure does not block the action.
      */
     private function changeStatus(Request $request, string $slug, string $status, string $action): JsonResponse
     {
@@ -341,7 +364,7 @@ class ArticleController extends Controller
         try {
             $title = $this->platform->getArticle($slug)->json('data.title');
         } catch (\Throwable) {
-            // نتجاهل: العنوان تحسين للسجلّ لا شرط لصحّة الإجراء
+            // Ignored: the title improves the log, it is not required for a valid action
         }
 
         $response = $this->platform->updateArticle($slug, ['status' => $status]);
@@ -359,10 +382,12 @@ class ArticleController extends Controller
     }
 
     /**
-     * أسماء الحقول التي اختلفت قيمتها فعلاً عن المقال قبل التعديل.
+     * Names of the fields whose values genuinely differ from the article as it
+     * stood before the edit.
      *
-     * إن تعذّرت قراءة الحالة السابقة نعود إلى ما أُرسل — أفضل تقدير متاح، ولا
-     * نُسقط السطر كاملاً فيفقد السجلّ معناه.
+     * If the previous state could not be read we fall back to what was sent —
+     * the best estimate available; we do not drop the line entirely and leave
+     * the log meaningless.
      *
      * @param  array<string, mixed>  $data
      * @param  array<string, mixed>|null  $before
@@ -378,8 +403,9 @@ class ArticleController extends Controller
 
         foreach ($data as $field => $value) {
             /*
-             * التصنيفات تصل معرّفاتٍ مختصرة وتعود من المنصّة كائناتٍ، والترتيب
-             * فيها لا يعني شيئاً — فنقارن مجموعتين مرتّبتين لا مصفوفتين.
+             * Tags arrive as slugs and come back from the platform as objects,
+             * and their order carries no meaning — so we compare two sorted sets
+             * rather than two arrays.
              */
             if ($field === 'tags') {
                 $now = collect($value)->sort()->values()->all();

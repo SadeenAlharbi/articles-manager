@@ -11,22 +11,25 @@ use Tests\Concerns\FakesKnowledgePlatform;
 use Tests\TestCase;
 
 /**
- * لوحة المعلومات.
+ * The dashboard.
  *
- * الأرقام تُجمَّع في الخادم من منصّة المعرفة ومن سجلّ العمليات. والاختبار يحرس
- * ثلاثة عقود: أن الصلاحية تُفرض، وأن الأرقام تأتي من ترقيم المنصّة لا من عدّ
- * الصفوف، وأن تعذّر المنصّة يُرجع «لا نعرف» لا صفراً كاذباً.
+ * The figures are assembled on the server from the knowledge platform and from
+ * the audit log. The test guards three contracts: that the permission is
+ * enforced, that the counts come from the platform's own pagination rather than
+ * from counting rows, and that an unreachable platform answers "we do not know"
+ * rather than a false zero.
  */
 class DashboardTest extends TestCase
 {
     use FakesKnowledgePlatform, RefreshDatabase;
 
     /**
-     * هل المنصّة متعطّلة في هذا الاختبار؟
+     * Is the platform down in this test?
      *
-     * لا يمكن تجاوز محاكاة setUp باستدعاء Http::fake داخل الاختبار — فهي
-     * تُلحَق ولا تُستشار، وأول ردّ غير فارغ يفوز. فالمحاكاة دالةٌ تقرأ هذي
-     * الخاصية لحظة الطلب، والاختبار يقلبها قبل أن يعمل.
+     * The setUp stub cannot be overridden by calling Http::fake inside the test
+     * — stubs are appended, not consulted, and the first non-empty response
+     * wins. So the stub is a closure that reads this property at request time,
+     * and the test flips it before the request runs.
      */
     private bool $platformIsDown = false;
 
@@ -60,7 +63,7 @@ class DashboardTest extends TestCase
         ]));
     }
 
-    /** ردّ المنصّة: الحمولة المعتادة، أو 500 إن كانت متعطّلة في هذا الاختبار. */
+    /** The platform's reply: the usual payload, or 500 if it is down in this test. */
     private function reply(array $payload)
     {
         return $this->platformIsDown
@@ -68,16 +71,16 @@ class DashboardTest extends TestCase
             : Http::response($payload, 200);
     }
 
-    /* ------------------------------- الصلاحية ------------------------------ */
+    /* ----------------------------- Permission ---------------------------- */
 
     public function test_analytics_view_is_required(): void
     {
-        // الكاتب لا يملك analytics.view
+        // The author does not hold analytics.view
         $this->actingAsAccount('author@demo.test');
 
         $this->getJson('/api/v1/dashboard')->assertForbidden();
 
-        // ولم يُلمس الاتصال بالمنصّة أصلاً
+        // And the platform connection was never touched at all
         Http::assertNothingSent();
     }
 
@@ -88,7 +91,7 @@ class DashboardTest extends TestCase
         $this->getJson('/api/v1/dashboard')->assertOk();
     }
 
-    /** صلاحية فردية تكفي: لا يلزم أن يكون مشرفاً. */
+    /** A single direct grant is enough: being a moderator is not required. */
     public function test_a_direct_grant_alone_opens_the_dashboard(): void
     {
         $user = $this->actingAsAccount('viewer@demo.test');
@@ -99,7 +102,7 @@ class DashboardTest extends TestCase
         $this->getJson('/api/v1/dashboard')->assertOk();
     }
 
-    /* -------------------------------- الأرقام ------------------------------ */
+    /* ---------------------------- The numbers ---------------------------- */
 
     public function test_counts_come_from_the_platform_pagination(): void
     {
@@ -112,8 +115,9 @@ class DashboardTest extends TestCase
             ->assertJsonPath('counts.draft', 12);
 
         /*
-         * per_page=1 مقصود: نحتاج meta.total وحده. طلب الصفحة كاملة لعدّها
-         * ينقل آلاف المقالات عبر الشبكة بلا سبب.
+         * per_page=1 is deliberate: all we need is meta.total. Asking for the
+         * full page in order to count it would move thousands of articles
+         * across the network for no reason.
          */
         Http::assertSent(fn ($request) => str_contains($request->url(), 'per_page=1'));
     }
@@ -126,7 +130,7 @@ class DashboardTest extends TestCase
 
         $categories = $response->json('top_categories');
 
-        // الأكثر أولاً، والتصنيف بلا مقالات لا يظهر في قائمة «الأكثر نشراً»
+        // Highest first, and an empty category never enters the "most published" list
         $this->assertSame(['heritage', 'vision-2030'], array_column($categories, 'slug'));
         $this->assertSame(7, $categories[0]['posts_count']);
     }
@@ -150,13 +154,14 @@ class DashboardTest extends TestCase
             ->assertJsonPath('latest_operations.0.payload.title', 'ميناء الخبر');
     }
 
-    /* ------------------------------ لا كذب ------------------------------ */
+    /* ------------------------------ No lying ----------------------------- */
 
     /**
-     * تعذّر المنصّة يُرجع null لا صفراً.
+     * An unreachable platform returns null, not zero.
      *
-     * الصفر يقول «لا مقالات»، والغياب يقول «لا نعرف». عرضهما متطابقَين يكذب
-     * على قارئ اللوحة — وبندك يمنع البيانات الوهمية صراحةً.
+     * Zero says "there are no articles"; absence says "we do not know".
+     * Presenting the two as the same thing lies to whoever reads the dashboard
+     * — and your clause forbids fabricated data outright.
      */
     public function test_an_unreachable_platform_reports_unknown_not_zero(): void
     {

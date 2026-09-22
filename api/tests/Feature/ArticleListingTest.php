@@ -13,28 +13,31 @@ use Tests\Concerns\FakesKnowledgePlatform;
 use Tests\TestCase;
 
 /**
- * ما تطلبه اللوحة من منصّة المعرفة حين تعرض المقالات.
+ * What the dashboard asks of the knowledge platform when it lists articles.
  *
- * منصّة المعرفة مُزيَّفة بـHttp::fake، والاختبار يفحص **الطلب الصادر** لا ما
- * يعود: هذي هي طبقتنا، وأي معامل نُسقطه هنا لا تراه المنصّة أصلاً.
+ * The knowledge platform is faked with Http::fake, and the test inspects the
+ * **outgoing request** rather than what comes back: that is our layer, and a
+ * parameter we drop here is one the platform never sees at all.
  *
- * وهذي الحالة وقعت فعلاً: الباب لعرض المسودات فُتح في المنصّة قبل أن تمرّر
- * اللوحة `status`، فبقيت المسودات غير مرئية والسبب في طرفنا لا طرفها.
+ * This very case really happened: the door to viewing drafts was opened on the
+ * platform before the dashboard started passing `status`, so the drafts stayed
+ * invisible and the cause was on our side, not theirs.
  */
 class ArticleListingTest extends TestCase
 {
     use FakesKnowledgePlatform, RefreshDatabase;
 
     /**
-     * المقال كما تراه المنصّة الآن.
+     * The article as the platform currently sees it.
      *
-     * تضبطه الاختبارات التي تحتاج حالة سابقة بعينها. ولا يمكن تجاوز محاكاة
-     * setUp باستدعاء Http::fake داخل الاختبار — تُلحَق ولا تُستشار — فالمحاكاة
-     * تقرأ هذي الخاصية لحظة الطلب بدل أن تُثبَّت وقت التسجيل.
+     * Tests that need one particular prior state set this. The setUp stub
+     * cannot be overridden by calling Http::fake inside the test — stubs are
+     * appended, not consulted — so the stub reads this property at request time
+     * instead of being frozen at registration time.
      */
     private array $article = [];
 
-    /** تصنيفات حقيقية من منصّة المعرفة — لا بيانات مخترعة. */
+    /** Real categories from the knowledge platform — no invented data. */
     private const CATEGORIES = [
         ['id' => 1, 'name' => 'رؤية السعودية 2030', 'slug' => 'vision-2030'],
         ['id' => 2, 'name' => 'الحج والعمرة', 'slug' => 'hajj-umrah'],
@@ -47,9 +50,10 @@ class ArticleListingTest extends TestCase
         $this->seed(RolesAndPermissionsSeeder::class);
 
         /*
-         * الترتيب تحرسه السمة: المخصّص أولاً والشامل أخيراً. والقاعدة الشاملة
-         * دالةٌ تقرأ $article لحظة الطلب، فالاختبار يضبط الحالة قبل أن يعمل
-         * بدل أن يعيد تسجيل محاكاة لن تُستشار.
+         * The trait guards the order: specific first, catch-all last. And the
+         * catch-all is a closure that reads $article at request time, so a test
+         * sets the state before it runs instead of re-registering a stub that
+         * would never be consulted.
          */
         $this->fakePlatform(
             ['*/api/v1/tags' => Http::response(['data' => self::CATEGORIES, 'message' => 'OK'], 200)],
@@ -58,11 +62,12 @@ class ArticleListingTest extends TestCase
     }
 
     /**
-     * العنوان المرسَل فعلاً إلى المنصّة، مفكوك الترميز.
+     * The URL actually sent to the platform, with its encoding undone.
      *
-     * لا نستعمل parse_str: هي تحوّل الاستعلام إلى متغيّرات PHP فتستبدل محارف
-     * في الأسماء وتُفسد النصّ متعدّد البايت — والبحث هنا عربي. urldecode على
-     * العنوان كاملاً يعيد UTF-8 سليماً.
+     * We do not use parse_str: it turns the query string into PHP variables,
+     * which substitutes characters inside the names and corrupts multi-byte
+     * text — and the search here is Arabic. urldecode on the whole URL gives
+     * back intact UTF-8.
      */
     private function sentUrl(): string
     {
@@ -91,10 +96,11 @@ class ArticleListingTest extends TestCase
         $this->actingAsAccount('admin@demo.test');
 
         /*
-         * urlencode لا نصّ خام: معيار الـURL يوجب ترميز ما خرج عن ASCII، وأي
-         * عميل حقيقي يفعله تلقائياً (المتصفّح، و URLSearchParams في api.js).
-         * إرسال البايتات خاماً هنا يجعل Symfony يمرّرها على parse_str فتتلف —
-         * أي أن الاختبار يرسل ما لا يرسله عميل قطّ.
+         * urlencode, not raw text: the URL standard requires anything outside
+         * ASCII to be encoded, and every real client does it automatically (the
+         * browser, and URLSearchParams in api.js). Sending the bytes raw here
+         * would have Symfony run them through parse_str and mangle them — that
+         * is, the test would be sending something no client ever sends.
          */
         $this->getJson(
             '/api/v1/articles?search='.urlencode('ميناء').'&per_page=12&sort=oldest&tag=tourism'
@@ -102,25 +108,25 @@ class ArticleListingTest extends TestCase
 
         $url = $this->sentUrl();
 
-        // العربية تصل سليمة عبر الشبكة — ليست تفصيلة في مشروع عربي بالكامل
+        // Arabic survives the wire intact — no small thing in an all-Arabic project
         $this->assertStringContainsString('search=ميناء', $url);
         $this->assertStringContainsString('per_page=12', $url);
         $this->assertStringContainsString('sort=oldest', $url);
         $this->assertStringContainsString('tag=tourism', $url);
     }
 
-    /** لا نخترع معاملات: ما لم يُرسل لا يُمرَّر. */
+    /** We invent no parameters: what was not sent is not passed on. */
     public function test_nothing_is_invented_when_no_filter_is_given(): void
     {
         $this->actingAsAccount('admin@demo.test');
 
         $this->getJson('/api/v1/articles')->assertOk();
 
-        // لا علامة استفهام أصلاً: لم يُمرَّر أي معامل لم يُطلَب
+        // No question mark at all: nothing unasked-for was passed along
         $this->assertStringNotContainsString('?', $this->sentUrl());
     }
 
-    /** الصلاحية تُفحص قبل أن يُلمس الاتصال بالمنصّة أصلاً. */
+    /** The permission is checked before the platform connection is touched at all. */
     public function test_a_user_without_articles_view_never_reaches_the_platform(): void
     {
         $user = User::where('email', 'viewer@demo.test')->firstOrFail();
@@ -134,7 +140,7 @@ class ArticleListingTest extends TestCase
         Http::assertNothingSent();
     }
 
-    /* ------------------------------ التصنيفات ------------------------------ */
+    /* ----------------------------- Categories ---------------------------- */
 
     public function test_categories_come_from_the_platform(): void
     {
@@ -149,10 +155,11 @@ class ArticleListingTest extends TestCase
     }
 
     /**
-     * البند الصريح في المواصفة: لا نسخة من التصنيفات في هذا المشروع.
+     * The explicit clause in the specification: no copy of the categories lives
+     * in this project.
      *
-     * الاختبار يفحص بنية القاعدة نفسها لا الكود — فلو أنشأ أحد جدولاً لاحقاً
-     * بحسن نيّة، سقط هنا فوراً.
+     * The test inspects the database schema itself rather than the code — so if
+     * someone later creates such a table in good faith, it fails right here.
      */
     public function test_no_categories_table_exists_in_this_database(): void
     {
@@ -164,25 +171,27 @@ class ArticleListingTest extends TestCase
         }
     }
 
-    /** «categories» اسم مسار لا اسم مقال — الترتيب في api.php يضمن ذلك. */
+    /** "categories" is a route name, not a slug — the order in api.php ensures it. */
     public function test_the_categories_route_is_not_swallowed_by_the_slug_route(): void
     {
         $this->actingAsAccount('admin@demo.test');
 
         $this->getJson('/api/v1/articles/categories')->assertOk();
 
-        // لو التقطه مسار المقال لطُلب /posts/categories بدل /tags
+        // If the article route had caught it, /posts/categories would be requested
         $this->assertStringContainsString('/tags', $this->sentUrl());
         $this->assertStringNotContainsString('/posts/categories', $this->sentUrl());
     }
 
-    /* ------------------------- صدق سجلّ التعديل ------------------------- */
+    /* ------------------- Truthfulness of the update log ------------------ */
 
     /**
-     * السجلّ يذكر ما تغيّر فعلاً لا ما أُرسل.
+     * The log states what actually changed, not what was submitted.
      *
-     * الواجهة ترسل النموذج كاملاً في كل حفظ. فلو سجّلنا ما وصل، لقال السجلّ إن
-     * العنوان تغيّر وهو لم يتغيّر — واتُّهم بريء لو سُئل «مَن غيّر العنوان؟».
+     * The front end sends the whole form on every save. So if we logged what
+     * arrived, the log would say the title changed when it had not — and an
+     * innocent person would be blamed the day someone asks "who changed the
+     * title?".
      */
     public function test_the_audit_records_only_the_fields_that_actually_changed(): void
     {
@@ -195,7 +204,7 @@ class ArticleListingTest extends TestCase
 
         $this->actingAsAccount('admin@demo.test');
 
-        // العنوان والمحتوى كما هما، والتصنيفات وحدها اختلفت
+        // Title and content unchanged; the tags alone are different
         $this->putJson('/api/v1/articles/mynaaa-alkhbr', [
             'title' => 'ميناء الخبر',
             'content' => 'نصّ المقال كما هو.',
@@ -208,7 +217,7 @@ class ArticleListingTest extends TestCase
         $this->assertSame('ميناء الخبر', $log->payload['title']);
     }
 
-    /** حفظ بلا تعديل فعلي يُسجَّل قائمة فارغة لا قائمة كاذبة. */
+    /** A save with no real edit records an empty list, not a false one. */
     public function test_saving_without_changing_anything_records_no_fields(): void
     {
         $this->article = ['slug' => 'x', 'title' => 'عنوان', 'content' => 'محتوى', 'tags' => []];
@@ -226,7 +235,7 @@ class ArticleListingTest extends TestCase
         $this->assertSame([], $log->payload['fields']);
     }
 
-    /** تعذّر الوصول إلى المنصّة يُترجَم إلى 502 لا إلى انهيار. */
+    /** The platform being unreachable turns into a 502, not a crash. */
     public function test_an_unreachable_platform_becomes_a_502(): void
     {
         $this->fakePlatformUnreachable();

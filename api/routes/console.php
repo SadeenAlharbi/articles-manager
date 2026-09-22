@@ -1,8 +1,9 @@
 <?php
 
 /*
- * أوامر artisan الخاصة بهذا المشروع.
+ * The artisan commands belonging to this project.
  *
- * فارغ عمداً: لم نحتج أمراً مخصّصاً بعد. يبقى الملف لأن bootstrap/app.php
- * يشير إليه، وهو الموضع الاصطلاحي لأي أمر نضيفه لاحقاً.
+ * Deliberately empty: we have not needed a custom command yet. The file stays
+ * because bootstrap/app.php points at it, and it is the conventional place for
+ * any command we add later.
  */

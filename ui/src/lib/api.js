@@ -1,27 +1,28 @@
 /**
- * طبقة الاتصال الوحيدة مع خادم لوحة الإدارة.
+ * The only layer that talks to the admin panel's server.
  *
- * لا يوجد هنا أي مفتاح لمنصّة المعرفة — المتصفّح لا يعرف بوجودها أصلاً.
- * كل طلب يذهب إلى لوحة الإدارة، وهي التي تفحص الصلاحية ثم تنقل الطلب.
+ * There is no key for the knowledge platform anywhere in here — the browser
+ * does not even know the platform exists. Every request goes to the admin
+ * panel, which checks the permission and then forwards the request onward.
  */
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8001/api/v1'
 const TOKEN_KEY = 'admin_token'
 
-/** التخزين مغلّف بـtry/catch: بعض المتصفّحات ترفض localStorage في التصفّح الخاص. */
+/** Storage is wrapped in try/catch: some browsers refuse localStorage in private browsing. */
 export const tokenStore = {
   get() {
     try { return localStorage.getItem(TOKEN_KEY) } catch { return null }
   },
   set(value) {
-    try { localStorage.setItem(TOKEN_KEY, value) } catch { /* تجاهل */ }
+    try { localStorage.setItem(TOKEN_KEY, value) } catch { /* ignore */ }
   },
   clear() {
-    try { localStorage.removeItem(TOKEN_KEY) } catch { /* تجاهل */ }
+    try { localStorage.removeItem(TOKEN_KEY) } catch { /* ignore */ }
   },
 }
 
-/** خطأ يحمل رمز الحالة، حتى تميّز الواجهة بين 403 و422 و502. */
+/** An error that carries the status code, so the interface can tell 403 from 422 from 502. */
 export class ApiError extends Error {
   constructor(message, status, data) {
     super(message)
@@ -47,17 +48,19 @@ export async function api(path, { method = 'GET', body, params } = {}) {
   let response
 
   /*
-   * FormData يُرسَل كما هو بلا تحويل، و**بلا** ترويسة Content-Type: المتصفّح
-   * يضبطها بنفسه ويضيف الحدّ الفاصل (boundary) الذي لا يعرفه أحد سواه. تحديدها
-   * يدوياً يُنتج طلباً بلا فاصل، فيصل الخادمَ جسمٌ فارغ بلا خطأ ظاهر.
+   * FormData is sent as-is with no conversion, and **without** a Content-Type
+   * header: the browser sets it itself and appends the boundary that nobody
+   * else knows. Setting it by hand produces a request with no boundary, so the
+   * server receives an empty body with no visible error.
    */
   const isForm = body instanceof FormData
 
   /*
-   * فشل الشبكة يُلقي TypeError لا استجابة، ونصّه من المتصفّح لا منّا:
-   * Safari يقول «Load failed» وChrome «Failed to fetch» — كلاهما إنجليزي
-   * ولا يدلّ المستخدم على شيء. نلتقطه هنا ونحوّله إلى ApiError برمز 0
-   * (لا استجابة أصلاً) ورسالة عربية تقول ما يجب فعله.
+   * A network failure throws a TypeError rather than returning a response, and
+   * its text comes from the browser, not from us: Safari says "Load failed"
+   * and Chrome "Failed to fetch" — both English, and neither tells the user
+   * anything. We catch it here and turn it into an ApiError with status 0 (no
+   * response at all) and an Arabic message that says what to do about it.
    */
   try {
     response = await fetch(url, {

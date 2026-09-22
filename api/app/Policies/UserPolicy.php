@@ -5,23 +5,25 @@ namespace App\Policies;
 use App\Models\User;
 
 /**
- * قواعد التدرّج في إدارة المستخدمين.
+ * Hierarchy rules for managing accounts.
  *
- * ثلاث قواعد تحكم كل ما في هذا الملف:
+ * Three rules govern everything in this file:
  *
- *   ١. لا تلمس من هو في مستواك أو أعلى منه.
- *   ٢. لا تمنح دوراً مستواه يساوي مستواك أو يفوقه.
- *   ٣. لا تمنح صلاحية لا تملكها أنت.
+ *   1. Never touch someone at your own level or above it.
+ *   2. Never assign a role whose level equals or exceeds your own.
+ *   3. Never grant a permission you do not hold yourself.
  *
- * القاعدة الثالثة أهمّها وأكثرها إغفالاً: بدونها يستطيع مستخدم أن
- * يمنح حساباً آخر صلاحيات تفوق صلاحياته ثم يدخل به — وهي ثغرة
- * تصعيد امتيازات كاملة رغم أن كل فحص ظاهري يبدو سليماً.
+ * The third is the most important and the most often forgotten: without it a
+ * user can grant another account permissions beyond their own and then sign in
+ * as that account — a complete privilege escalation, even though every visible
+ * check looks sound.
  *
- * كل ما هنا يُفرض على الخادم. الواجهة تُخفي الأزرار للتجربة فقط.
+ * All of this is enforced on the server. The UI hides buttons for convenience
+ * only; hiding a button is not a security control.
  */
 class UserPolicy
 {
-    /* ----------------------------- القراءة ------------------------------ */
+    /* ------------------------------ Reading ----------------------------- */
 
     public function viewAny(User $actor): bool
     {
@@ -33,7 +35,7 @@ class UserPolicy
         return $actor->can('users.manage');
     }
 
-    /* ------------------------------ الكتابة ----------------------------- */
+    /* ------------------------------ Writing ----------------------------- */
 
     public function create(User $actor): bool
     {
@@ -41,11 +43,12 @@ class UserPolicy
     }
 
     /**
-     * إنشاء مستخدم ومنحه دوراً في الوقت نفسه.
+     * Create an account and assign it a role in one step.
      *
-     * assignRole أعلاه تحتاج مستخدماً قائماً، وهذا لم يوجد بعد — لذلك
-     * قاعدة منفصلة تفحص مستوى الدور المطلوب قبل الإنشاء لا بعده.
-     * لولاها لأمكن إنشاء الحساب ثم فشل إسناد الدور، فيبقى حساب يتيم.
+     * assignRole() above needs an existing user, and this one does not exist
+     * yet — hence a separate rule that checks the requested role level BEFORE
+     * creation rather than after. Without it the account could be created and
+     * the role assignment then fail, leaving an orphaned account behind.
      */
     public function createWithRole(User $actor, int $roleLevel): bool
     {
@@ -55,10 +58,10 @@ class UserPolicy
     }
 
     /**
-     * تعديل بيانات حساب.
+     * Edit an account's details.
      *
-     * يُسمح للمستخدم بتعديل بيانات نفسه دون أن يملك users.manage —
-     * لكنه لا يستطيع تغيير أدواره ولا صلاحياته، فتلك قواعد منفصلة أدناه.
+     * A user may edit their own details without holding users.manage — but not
+     * their own roles or permissions, which are separate rules below.
      */
     public function update(User $actor, User $target): bool
     {
@@ -70,10 +73,11 @@ class UserPolicy
     }
 
     /**
-     * تعطيل حساب أو إعادة تفعيله.
+     * Disable an account or re-enable it.
      *
-     * منع تعطيل النفس مقصود: لولاه لاستطاع آخر مدير في النظام أن
-     * يُقفل الباب على الجميع بضغطة واحدة.
+     * Blocking self-disable is deliberate: without it the last administrator in
+     * the system could lock everyone out with a single click, and nobody would
+     * be left who could undo it.
      */
     public function toggleActive(User $actor, User $target): bool
     {
@@ -84,15 +88,16 @@ class UserPolicy
         return $actor->can('users.manage') && $actor->outranks($target);
     }
 
-    /* ------------------------ الأدوار والصلاحيات ------------------------ */
+    /* -------------------------- Roles and permissions -------------------- */
 
     /**
-     * إسناد دور إلى مستخدم.
+     * Assign a role to a user.
      *
-     * $roleLevel هو مستوى الدور المُراد إسناده.
+     * $roleLevel is the level of the role being assigned.
      *
-     * الشرط الأخير هو صمّام الأمان: لا يستطيع مشرف مستواه 80 أن
-     * يصنع مديراً مستواه 100 — أي لا يصنع أحد من هو أقوى منه.
+     * The last condition is the safety valve: an admin at level 80 cannot mint
+     * a super admin at level 100 — nobody creates someone stronger than
+     * themselves.
      */
     public function assignRole(User $actor, User $target, int $roleLevel): bool
     {
@@ -106,9 +111,9 @@ class UserPolicy
     }
 
     /**
-     * منح صلاحيات فردية لمستخدم.
+     * Grant individual permissions to a user.
      *
-     * @param  array<int, string>  $permissions  أسماء الصلاحيات المطلوب منحها
+     * @param  array<int, string>  $permissions  names of the permissions to grant
      */
     public function grantPermissions(User $actor, User $target, array $permissions): bool
     {
@@ -120,7 +125,7 @@ class UserPolicy
             return false;
         }
 
-        // القاعدة الثالثة: لا تمنح ما لا تملك.
+        // Rule 3: never grant what you do not hold.
         foreach ($permissions as $permission) {
             if (! $actor->can($permission)) {
                 return false;

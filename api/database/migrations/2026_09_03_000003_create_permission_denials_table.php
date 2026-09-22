@@ -5,15 +5,18 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * حجب صلاحية عن مستخدم بعينه.
+ * Withholding one permission from one particular user.
  *
- * الدور يمنح مجموعة، وأحياناً يجب استثناء شخص واحد من صلاحية واحدة فيها
- * دون إنزاله إلى دور أدنى — «مشرف محتوى بلا حذف» مثلاً. بدون هذا الجدول
- * كان الحل الوحيد إنشاء دور جديد لكل استثناء، فتتضخّم الأدوار بلا معنى.
+ * A role grants a whole set, and sometimes a single person must be excepted
+ * from a single permission inside it without being demoted to a lesser role —
+ * a "content supervisor who cannot delete", say. Without this table the only
+ * remedy was to create a new role for every exception, and the roles would
+ * multiply for no good reason.
  *
- * الحجب يعلو على المنح: صف هنا يُسقط الصلاحية حتى لو منحها الدور، وحتى لو
- * مُنحت منحاً فردياً. والتطبيق في User::hasPermissionTo — أي في نفس المسار
- * الذي تمرّ منه الـmiddleware و Gate، لا في الواجهة.
+ * A denial outranks a grant: a row here drops the permission even if the role
+ * granted it, and even if it was granted individually. It is enforced in
+ * User::hasPermissionTo — that is, on the same path the middleware and the Gate
+ * already go through, not in the interface.
  */
 return new class extends Migration
 {
@@ -22,13 +25,14 @@ return new class extends Migration
         Schema::create('permission_denials', function (Blueprint $table) {
             $table->id();
 
-            // حذف المستخدم أو الصلاحية يُسقط الحجب معه — لا معنى لصفّ يتيم
+            // Deleting the user or the permission drops the denial with it —
+            // an orphaned row means nothing
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('permission_id')->constrained('permissions')->cascadeOnDelete();
 
             $table->timestamp('created_at')->useCurrent();
 
-            // حجب واحد لكل (مستخدم، صلاحية) — التكرار لا يعني شيئاً
+            // One denial per (user, permission) — a duplicate would mean nothing
             $table->unique(['user_id', 'permission_id']);
         });
     }

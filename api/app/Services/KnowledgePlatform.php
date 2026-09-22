@@ -26,7 +26,7 @@ class KnowledgePlatform
         try {
             return $call($this->client());
         } catch (ConnectionException $e) {
-            // السبب الحقيقي يُسجَّل لنا؛ والعميل يرى جملة واحدة.
+            // The real cause is logged for us; the client sees a single sentence.
             Log::warning('Knowledge platform unreachable: '.$e->getMessage());
 
             throw new PlatformUnavailableException;
@@ -39,11 +39,12 @@ class KnowledgePlatform
     }
 
     /**
-     * تصنيفات منصّة المعرفة.
+     * Categories from the knowledge platform.
      *
-     * قراءة فقط ولا تخزين: المنصّة هي مصدر الحقيقة للتصنيفات، وأي نسخة عندنا
-     * تصير قديمة لحظة إضافة تصنيف هناك. ولهذا لا يوجد جدول تصنيفات في هذي
-     * القاعدة إطلاقاً.
+     * Read only, never stored: the platform is the source of truth for
+     * categories, and any copy we hold goes stale the moment a category is added
+     * over there. That is why there is no categories table in this database at
+     * all.
      */
     public function listTags(): Response
     {
@@ -72,18 +73,19 @@ class KnowledgePlatform
         }
 
         /*
-         * مع صورة نرسل POST لا PUT.
+         * With an image we send a POST, not a PUT.
          *
-         * PHP لا يفكّ ترميز multipart إلا في POST — لا PUT ولا PATCH — فيصل
-         * الملف إلى المنصّة فارغاً مهما أرسلنا. و`_method=PUT` انتحالٌ أصلي في
-         * Laravel: الموجّه هناك يرى الطلب PUT فيطابق المسار القائم، فلا نحتاج
-         * مساراً جديداً في المشروع الأول.
+         * PHP only decodes multipart bodies on POST — not PUT, not PATCH — so the
+         * file reaches the platform empty no matter what we send. And
+         * `_method=PUT` is native spoofing in Laravel: the router over there sees
+         * the request as a PUT and matches the existing route, so we need no new
+         * route in the first project.
          */
         return $this->send(fn (PendingRequest $http) => $this->withImage($http, $image)
             ->post("/posts/{$slug}", $this->asFormFields($data + ['_method' => 'PUT'])));
     }
 
-    /** إرفاق الصورة بمحتواها واسمها ونوعها كما رفعها المستخدم. */
+    /** Attach the image with its content, name and type as the user uploaded it. */
     private function withImage(PendingRequest $http, UploadedFile $image): PendingRequest
     {
         return $http->attach(
@@ -95,11 +97,12 @@ class KnowledgePlatform
     }
 
     /**
-     * تسطيح البيانات لتصلح حقولَ نموذج.
+     * Flatten the data so that it works as form fields.
      *
-     * multipart لا يعرف المصفوفات المتداخلة: قيمة مصفوفة تُفشل Guzzle. فنكتب
-     * `tags[0]` و`tags[1]` — وهي الصيغة التي يعيد PHP تجميعها مصفوفةً عند
-     * الاستقبال. والقيم الفارغة تُسقَط لأن multipart لا يحمل null.
+     * multipart knows nothing of nested arrays: an array value makes Guzzle
+     * fail. So we write `tags[0]` and `tags[1]` — the form PHP reassembles back
+     * into an array on the receiving end. Empty values are dropped, because
+     * multipart cannot carry a null.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, scalar>

@@ -9,9 +9,13 @@ import UsersPage from './pages/UsersPage'
 import AuditLogsPage from './pages/AuditLogsPage'
 
 /*
- * التبويبات تظهر حسب الصلاحيات لا حسب الأدوار — فمن مُنح audit.view
- * منحاً مباشراً يرى تبويب السجلّ دون أن يكون مشرفاً. وهذا يطابق ما
- * يحرس به الخادم كل مسار بالضبط.
+ * Tabs are shown by permission, not by role — someone granted audit.view
+ * directly sees the audit tab without being an administrator at all. This
+ * mirrors exactly what the server guards each route with.
+ *
+ * `group` is the section heading in the sidebar, in the style of the main
+ * platform. A tab with no group stands alone at the top with no heading —
+ * which is where "Home" sits over there.
  */
 const TABS = [
   {
@@ -19,13 +23,13 @@ const TABS = [
     label: 'لوحة المعلومات',
     icon: IconChart,
     permission: 'analytics.view',
-    title: 'لوحة المعلومات',
-    subtitle: 'أرقام المنصّة وآخر العمليات',
+    // No title: the welcome card inside the page is its heading
     Page: DashboardPage,
   },
   {
     key: 'articles',
     label: 'المقالات',
+    group: 'المحتوى',
     icon: IconArticles,
     permission: 'articles.view',
     title: 'المقالات',
@@ -35,6 +39,7 @@ const TABS = [
   {
     key: 'users',
     label: 'المستخدمون',
+    group: 'النظام',
     icon: IconUsers,
     permission: 'users.manage',
     title: 'المستخدمون',
@@ -44,6 +49,7 @@ const TABS = [
   {
     key: 'audit',
     label: 'سجلّ العمليات',
+    group: 'النظام',
     icon: IconAudit,
     permission: 'audit.view',
     title: 'سجلّ العمليات',
@@ -56,8 +62,9 @@ export default function App() {
   const [tab, setTab] = useState(null)
 
   /*
-   * عند تبديل الحساب نعود إلى أول تبويب متاح لا إلى تبويب بعينه: مَن لا يملك
-   * analytics.view لا يرى لوحة المعلومات، فلا نفتحها له ثم نسقط عنها.
+   * When the account changes we fall back to the first available tab rather
+   * than to one particular tab: someone without analytics.view never sees the
+   * dashboard, so we must not open it for them and then drop off it.
    */
   useEffect(() => {
     setTab(null)
@@ -98,7 +105,7 @@ export default function App() {
       title={active.title}
       subtitle={active.subtitle}
     >
-      <Page />
+      <Page onNavigate={setTab} />
     </Layout>
   )
 }

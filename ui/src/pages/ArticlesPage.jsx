@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../auth/AuthContext'
-import { Alert, Button, ConfirmDialog, EmptyState, Input, Modal, Spinner } from '../components/ui'
+import {
+  Alert,
+  Button,
+  CONTROL_CLASS,
+  ConfirmDialog,
+  EmptyState,
+  Input,
+  Modal,
+  SelectControl,
+  Spinner,
+} from '../components/ui'
 import { IconExternal, IconSearch } from '../components/icons'
 import { statusTone } from '../lib/labels'
 
@@ -235,40 +245,39 @@ export default function ArticlesPage() {
 
   return (
     <div>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="relative">
-          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-300">
-            <IconSearch />
-          </span>
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="ابحث بالعنوان أو المحتوى..."
-            aria-label="بحث في المقالات"
-            className="w-72 rounded-xl border border-ink-200 bg-white py-2 pr-9 pl-3 text-sm
-              shadow-card outline-none transition-colors focus:border-brand-500"
-          />
-        </div>
-
+      {/* البحث والتصفية معاً في جهة البداية، وزر الإنشاء وحده في المقابل —
+          نفس بنية شريط المستخدمين وأبعاده، فلا يختلف الصفّان بين الصفحتين. */}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-300">
+              <IconSearch />
+            </span>
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="ابحث بالعنوان أو المحتوى..."
+              aria-label="بحث في المقالات"
+              className={`${CONTROL_CLASS} w-64 pl-3 pr-9`}
+            />
+          </div>
+
           {/* التصفية تُنفَّذ في منصّة المعرفة لا هنا: القائمة مُرقَّمة، وتصفية
               الصفحة المعروضة وحدها تُخفي مقالات الصفحات الأخرى. */}
-          <select
+          <SelectControl
             value={status}
             onChange={(event) => setStatus(event.target.value)}
             aria-label="تصفية حسب حالة المقال"
-            className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm
-              shadow-card outline-none transition-colors focus:border-brand-500"
           >
             {STATUS_FILTERS.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}
               </option>
             ))}
-          </select>
-
-          {can('articles.create') && <Button onClick={openCreate}>مقال جديد</Button>}
+          </SelectControl>
         </div>
+
+        {can('articles.create') && <Button onClick={openCreate}>مقال جديد</Button>}
       </div>
 
       <Alert tone={notice?.tone} onDismiss={() => setNotice(null)}>
@@ -304,7 +313,7 @@ export default function ArticlesPage() {
             return (
               <article
                 key={article.id}
-                className="group rounded-2xl border border-ink-200 bg-white p-4 shadow-card
+                className="group rounded-2xl border border-ink-100 bg-white p-4
                   transition-all hover:border-ink-300 hover:shadow-lift"
               >
                 <div className="flex gap-4">
@@ -372,8 +381,9 @@ export default function ArticlesPage() {
                           href={url ?? '#'}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200
-                            px-3 py-1.5 text-xs font-semibold text-ink-700 transition-colors hover:bg-ink-50"
+                          className="inline-flex h-8 items-center gap-1.5 rounded-lg border
+                            border-ink-200 px-3 text-xs font-semibold text-ink-700 transition-colors
+                            hover:bg-ink-50"
                         >
                           <IconExternal />
                           عرض في المنصّة
@@ -381,8 +391,8 @@ export default function ArticlesPage() {
                       ) : (
                         <span
                           title="المقال غير منشور، فلا صفحة له في المنصّة بعد."
-                          className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg
-                            border border-ink-100 px-3 py-1.5 text-xs font-semibold text-ink-300"
+                          className="inline-flex h-8 cursor-not-allowed items-center gap-1.5
+                            rounded-lg border border-ink-100 px-3 text-xs font-semibold text-ink-300"
                         >
                           <IconExternal />
                           غير منشور في المنصّة

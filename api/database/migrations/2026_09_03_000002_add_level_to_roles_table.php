@@ -5,13 +5,15 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * مستوى الدور — أساس تدرّج الصلاحيات.
+ * The role's level — the basis of the permission hierarchy.
  *
- * المستوى صفة الدور لا الشخص، فلا يوجد مصدرا حقيقة يتعارضان.
- * ومستوى المستخدم = أعلى مستوى بين أدواره.
+ * The level is a property of the role, not of the person, so there are never
+ * two sources of truth pulling against each other. A user's level is then the
+ * highest level among their roles.
  *
- * القيمة الافتراضية صفر: أي دور يُنشأ لاحقاً بلا مستوى صريح لا يملك
- * سلطة على أحد — الافتراض الآمن هو أقلّ صلاحية لا أكثرها.
+ * The default value is zero: any role created later without an explicit level
+ * holds authority over nobody — the safe default is the least privilege, not
+ * the most.
  */
 return new class extends Migration
 {

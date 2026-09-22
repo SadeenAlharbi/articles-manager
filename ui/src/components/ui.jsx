@@ -1,14 +1,15 @@
 import { useEffect, useRef } from 'react'
 
 /*
- * عناصر واجهة مشتركة.
+ * Shared interface elements.
  *
- * ملف واحد لا ملف لكل عنصر: العناصر صغيرة ومترابطة، وتفريقها تعقيد
- * بلا مقابل. الغرض منها أن تكون الأزرار والنماذج والحالات متّسقة في
- * كل الصفحات بدل أن تُكتب من جديد في كل مرة بشكل مختلف قليلاً.
+ * One file rather than a file per element: the pieces are small and closely
+ * related, and pulling them apart is complexity for nothing. Their purpose is
+ * that buttons, forms and states stay consistent across every page instead of
+ * being written afresh, slightly differently, each time.
  */
 
-/* -------------------------------- الأزرار -------------------------------- */
+/* -------------------------------- Buttons -------------------------------- */
 
 const BUTTON_VARIANTS = {
   primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-600/60',
@@ -17,9 +18,17 @@ const BUTTON_VARIANTS = {
   ghost: 'text-ink-500 hover:bg-ink-50',
 }
 
+/*
+ * The height is fixed, not derived from the padding.
+ *
+ * Padding on its own does not make a row line up: the browser draws a <select>
+ * to its own metrics, so the dropdown comes out shorter than the input and the
+ * button beside it even when their padding matches exactly. So the height is
+ * pinned here, and in CONTROL_CLASS to the very same value.
+ */
 const BUTTON_SIZES = {
-  sm: 'px-3 py-1.5 text-xs',
-  md: 'px-4 py-2 text-sm',
+  sm: 'h-8 px-3 text-xs',
+  md: 'h-10 px-4 text-sm',
 }
 
 export function Button({
@@ -44,13 +53,50 @@ export function Button({
   )
 }
 
-/* -------------------------------- الحقول --------------------------------- */
+/* ---------------------------- Toolbar controls ----------------------------- */
+
+/**
+ * The shared base for toolbar controls: exactly the height of the buttons (h-10).
+ *
+ * With no horizontal padding, deliberately — that is added at the call site,
+ * since the search field needs room for its icon and the dropdown needs room
+ * for its chevron, and a px-3 here would fight the pr/pl that override it.
+ */
+export const CONTROL_CLASS =
+  'h-10 rounded-xl border border-ink-200 bg-white text-sm text-ink-800 outline-none ' +
+  'transition-colors focus:border-brand-500'
+
+/** A drawn chevron instead of the system one — Safari's arrow is what forces a different height. */
+const CHEVRON =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' " +
+  "fill='none' stroke='%23a8a79f' stroke-width='2' stroke-linecap='round' " +
+  "stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")"
+
+/** A dropdown at the very same height as the fields. */
+export function SelectControl({ className = '', children, ...props }) {
+  return (
+    <select
+      className={`${CONTROL_CLASS} appearance-none pl-9 pr-3 ${className}`}
+      style={{
+        backgroundImage: CHEVRON,
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'left 0.75rem center',
+        backgroundSize: '14px',
+      }}
+      {...props}
+    >
+      {children}
+    </select>
+  )
+}
+
+/* -------------------------------- Fields --------------------------------- */
 
 const FIELD_BASE =
   'w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none transition-colors ' +
   'focus:border-brand-500 disabled:bg-ink-50 disabled:text-ink-400'
 
-/** حقل نصّي مع تسمية ورسالة خطأ اختيارية. */
+/** A text field with a label and an optional error message. */
 export function Input({ label, error, hint, id, ...props }) {
   const inputId = id ?? props.name
 
@@ -105,7 +151,7 @@ export function Select({ label, error, id, children, ...props }) {
   )
 }
 
-/* -------------------------------- الحالات -------------------------------- */
+/* -------------------------------- States --------------------------------- */
 
 const ALERT_TONES = {
   success: 'bg-brand-50 text-brand-700',
@@ -168,23 +214,25 @@ export function Badge({ tone = 'neutral', children, mono = false }) {
   )
 }
 
-/* ------------------------------- النوافذ --------------------------------- */
+/* -------------------------------- Modals --------------------------------- */
 
 /**
- * نافذة منبثقة.
+ * A modal dialog.
  *
- * تُغلق بمفتاح Escape وبالنقر خارجها، وتمنع تمرير الصفحة خلفها،
- * وتحمل role="dialog" و aria-modal ليقرأها قارئ الشاشة نافذةً لا نصاً.
+ * It closes on Escape and on a click outside it, stops the page behind it from
+ * scrolling, and carries role="dialog" and aria-modal so a screen reader
+ * announces it as a dialog rather than as running text.
  */
 export function Modal({ open, title, onClose, children, footer, wide = false }) {
   const panelRef = useRef(null)
 
   /*
-   * onClose تُمرَّر دالةً سهمية مضمّنة، فتُنشأ من جديد مع كل إعادة رسم
-   * للصفحة الأم — أي مع كل حرف يُكتب في أي حقل داخل النافذة. لو بقيت في
-   * مصفوفة اعتماديات الأثر لأُعيد تشغيله في كل مرة، ولسحب focus() التركيز
-   * من الحقل الذي تكتب فيه إلى جسم النافذة. نحفظها في ref فيبقى الأثر
-   * معتمداً على open وحده.
+   * onClose is passed as an inline arrow function, so it is created anew on
+   * every re-render of the parent page — which is to say on every character
+   * typed into any field inside the modal. Left in the effect's dependency
+   * array it would re-run the effect each time, and focus() would pull the
+   * caret out of the field being typed in and back onto the modal panel. We
+   * keep it in a ref, so the effect depends on open and nothing else.
    */
   const closeRef = useRef(onClose)
   closeRef.current = onClose
@@ -207,9 +255,10 @@ export function Modal({ open, title, onClose, children, footer, wide = false }) 
   }, [open])
 
   /*
-   * عند الفتح ينتقل التركيز إلى أول حقل قابل للكتابة داخل النافذة — فيبدأ
-   * المستخدم بالكتابة مباشرة — أو إلى جسم النافذة نفسه إن لم يكن فيها حقول
-   * (حوارات التأكيد). مرة واحدة عند الفتح فقط.
+   * On opening, focus moves to the first writable field inside the modal — so
+   * the user can start typing straight away — or onto the modal panel itself
+   * when it has no fields at all (the confirmation dialogs). Once, on open,
+   * and no more than that.
    */
   useEffect(() => {
     if (!open) return
@@ -258,10 +307,11 @@ export function Modal({ open, title, onClose, children, footer, wide = false }) 
 }
 
 /**
- * حوار تأكيد للعمليات الخطرة.
+ * A confirmation dialog for destructive operations.
  *
- * لا يُستبدل بـwindow.confirm: ذاك لا يُنسَّق ولا يدعم RTL ولا يشرح
- * تبعات العملية، ولا يمكن إظهار حالة "جارِ التنفيذ" فيه.
+ * window.confirm is no substitute: it cannot be styled, does not support RTL,
+ * does not explain what the operation entails, and offers no way to show an
+ * in-progress state inside it.
  */
 export function ConfirmDialog({ open, title, message, confirmLabel = 'تأكيد', tone = 'danger', busy = false, onConfirm, onClose }) {
   return (

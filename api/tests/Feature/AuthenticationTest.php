@@ -9,10 +9,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * مصادقة نظام الإدارة وحالة الحساب.
+ * Authentication for the admin system, and account state.
  *
- * تغطّي المتطلّب: الحساب المعطَّل لا يدخل، وتظهر له رسالة واضحة،
- * ولا يستمر توكن أُصدر له قبل التعطيل.
+ * Covers the requirement: a disabled account cannot sign in, it is told
+ * plainly why, and a token issued to it before it was disabled does not live on.
  */
 class AuthenticationTest extends TestCase
 {
@@ -27,7 +27,7 @@ class AuthenticationTest extends TestCase
 
     private const LOGIN = '/api/v1/login';
 
-    /* ------------------------------ الدخول ------------------------------ */
+    /* ----------------------------- Signing in ---------------------------- */
 
     public function test_a_valid_account_receives_a_token_and_its_permissions(): void
     {
@@ -52,8 +52,8 @@ class AuthenticationTest extends TestCase
     }
 
     /**
-     * البريد غير الموجود وكلمة السر الخاطئة يعطيان الردّ نفسه،
-     * فلا يستطيع أحد اكتشاف البُرد المسجّلة في النظام.
+     * An unknown email and a wrong password give exactly the same response,
+     * so nobody can discover which addresses are registered in the system.
      */
     public function test_an_unknown_email_is_indistinguishable_from_a_wrong_password(): void
     {
@@ -72,7 +72,7 @@ class AuthenticationTest extends TestCase
         $this->assertSame($wrongPassword->json('message'), $unknown->json('message'));
     }
 
-    /* --------------------------- حالة الحساب ---------------------------- */
+    /* --------------------------- Account state --------------------------- */
 
     public function test_a_disabled_account_cannot_log_in_and_is_told_why(): void
     {
@@ -96,27 +96,28 @@ class AuthenticationTest extends TestCase
     }
 
     /**
-     * الفجوة التي لا يسدّها فحص تسجيل الدخول: توكن أُصدر قبل التعطيل.
+     * The gap the login check does not close: a token issued before disabling.
      */
     public function test_a_token_issued_before_disabling_stops_working(): void
     {
         $user = User::where('email', 'editor@demo.test')->firstOrFail();
         $token = $user->createToken('test')->plainTextToken;
 
-        // ما زال الحساب نشطاً — التوكن يعمل.
+        // The account is still active — the token works.
         $this->withToken($token)->getJson('/api/v1/me')->assertOk();
 
         $user->update(['is_active' => false]);
 
         /*
-         * في الاختبارات يُبنى التطبيق مرة واحدة، وحارس المصادقة يحتفظ
-         * بكائن المستخدم الذي حلّه في الطلب الأول — فلا يرى التعطيل.
-         * في الإنتاج كل طلب عملية جديدة تقرأ المستخدم من قاعدة البيانات.
-         * نمسح الحارس هنا لنُحاكي ذلك، لا لنتجاوز الفحص.
+         * In the tests the application is booted once, and the auth guard holds
+         * on to the user object it resolved during the first request — so it
+         * never sees the account being disabled. In production every request is
+         * a new process that reads the user from the database. We clear the
+         * guard here to reproduce that, not to get around the check.
          */
         $this->app['auth']->forgetGuards();
 
-        // بعد التعطيل، التوكن نفسه يُرفض.
+        // Once disabled, that same token is refused.
         $this->withToken($token)->getJson('/api/v1/me')
             ->assertStatus(403)
             ->assertJson(['message' => EnsureAccountIsActive::MESSAGE]);
@@ -133,7 +134,7 @@ class AuthenticationTest extends TestCase
         $this->assertSame(0, $user->fresh()->tokens()->count());
     }
 
-    /* ------------------------------ الخروج ------------------------------ */
+    /* ---------------------------- Signing out ---------------------------- */
 
     public function test_logging_out_deletes_only_the_current_token(): void
     {

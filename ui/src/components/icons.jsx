@@ -1,8 +1,9 @@
 /*
- * أيقونات مرسومة يدوياً كـSVG.
+ * Icons drawn by hand as SVG.
  *
- * لا مكتبة أيقونات: نحتاج ستّاً فقط، وإضافة حزمة كاملة من أجلها تُثقل
- * الحزمة النهائية بلا مقابل. كلها بمقاس 20 و stroke موحّد فتبدو عائلة واحدة.
+ * No icon library: we need six of them, and pulling in a whole package for
+ * that weighs the final bundle down for nothing. All are sized 20 with a
+ * uniform stroke, so they read as a single family.
  */
 
 const base = {
@@ -109,5 +110,29 @@ export const IconShield = (props) => (
   <svg {...base} {...props}>
     <path d="M12 3.5 19.5 6v6c0 4.2-3 7.4-7.5 8.5C7.5 19.4 4.5 16.2 4.5 12V6z" />
     <path d="m9 12 2 2 4-4" />
+  </svg>
+)
+
+/* ------------------------- Article status icons ------------------------- */
+/* Used in the dashboard cards, in the style of the indicator cards on the main platform. */
+
+export const IconCheck = (props) => (
+  <svg {...base} {...props}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M8.5 12.2l2.4 2.4 4.6-5" />
+  </svg>
+)
+
+export const IconPencil = (props) => (
+  <svg {...base} {...props}>
+    <path d="M4 20h4L19.5 8.5a2.12 2.12 0 0 0-3-3L5 17v3z" />
+    <path d="M14.5 6.5l3 3" />
+  </svg>
+)
+
+export const IconClock = (props) => (
+  <svg {...base} {...props}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3 1.8" />
   </svg>
 )

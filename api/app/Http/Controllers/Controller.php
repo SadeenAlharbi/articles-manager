@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 /**
- * الصنف الأساسي للمتحكّمات.
+ * Base class for the controllers.
  *
- * منذ Laravel 11 صار هذا الصنف فارغاً افتراضياً، ومن يحتاج
- * $this->authorize() عليه إضافة السمة صراحةً. نضيفها هنا مرة واحدة
- * لأن التفويض على مستوى الكائن (UserPolicy) جزء أصيل من هذا النظام.
+ * As of Laravel 11 this class is empty by default, and whoever needs
+ * $this->authorize() has to pull the trait in explicitly. We add it here once,
+ * because object-level authorization (UserPolicy) is intrinsic to this system.
  */
 abstract class Controller
 {

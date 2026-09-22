@@ -1,15 +1,17 @@
 /*
- * المسمّيات العربية المشتركة بين الصفحات.
+ * The Arabic labels shared across the pages.
  *
- * كانت خريطة العمليات مكرّرة حرفياً في صفحتَي لوحة المعلومات وسجلّ العمليات،
- * ونغمات الحالة مكرّرة بين المقالات ولوحة المعلومات. والتكرار هنا لا يُنتج
- * خطأً صاخباً بل خطأً صامتاً: تُضاف عملية جديدة في الخادم فتُترجَم في صفحة
- * وتظهر بمعرّفها التقني في الأخرى.
+ * The action map used to be duplicated verbatim in both the dashboard and the
+ * audit log pages, and the status tones duplicated between articles and the
+ * dashboard. Duplication of this kind does not produce a loud failure but a
+ * silent one: a new action is added on the server, gets translated on one
+ * page, and shows up as its technical identifier on the other.
  *
- * المصدر الحقيقي يبقى الخادم: هذي ترجمة عرضٍ فقط، ولا يُبنى عليها أي قرار.
+ * The server remains the real source of truth: this is presentation
+ * translation only, and no decision is ever made from it.
  */
 
-/** أسماء العمليات كما تُسجَّل في سجلّ التدقيق. */
+/** Action names as they are recorded in the audit log. */
 export const ACTIONS = {
   'articles.create': 'إنشاء مقال',
   'articles.update': 'تعديل مقال',
@@ -24,7 +26,7 @@ export const ACTIONS = {
   'users.permissions': 'تغيير صلاحيات',
 }
 
-/** ترجمة عملية، مع إبقاء المعرّف ظاهراً إن كانت جديدة ولم تُترجم بعد. */
+/** Translate an action, keeping the raw identifier visible if it is new and not translated yet. */
 export const actionLabel = (action) => ACTIONS[action] ?? action
 
 const STATUS_TONES = {
@@ -33,5 +35,5 @@ const STATUS_TONES = {
   scheduled: 'bg-ink-100 text-ink-600',
 }
 
-/** نغمة شارة الحالة. الحالة المجهولة تأخذ الرمادي لا تكسر التنسيق. */
+/** The tone of the status badge. An unknown status takes grey rather than breaking the layout. */
 export const statusTone = (status) => STATUS_TONES[status] ?? 'bg-ink-100 text-ink-600'

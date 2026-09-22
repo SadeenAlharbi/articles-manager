@@ -15,14 +15,15 @@ use Illuminate\Http\Request;
 class AuditLogController extends Controller
 {
     /**
-     * سجلّ العمليات.
+     * The audit log.
      *
-     * الصلاحية المطلوبة: `audit.view` (عرض سجلّ العمليات) — وهي صلاحية فردية
-     * يمكن منحها لشخص بعينه دون ترقيته إلى مشرف. الصفوف تُكتب ولا تُعدَّل ولا
-     * تُحذف، ولا تحوي كلمات مرور إطلاقاً.
+     * Required permission: `audit.view` (viewing the audit log) — an individual
+     * permission that can be granted to one particular person without promoting
+     * them to admin. Rows are written and never edited nor deleted, and they
+     * never hold passwords of any kind.
      *
-     * تُرجع أيضاً `actors` (قائمة المنفّذين للتصفية) و`labels` (مسمّيات
-     * الصلاحيات والأدوار بالعربية) إلى جانب `data`.
+     * Alongside `data` it also returns `actors` (the list of actors, for
+     * filtering) and `labels` (the Arabic names of the permissions and roles).
      */
     #[ApiResponse(403, description: 'لا تملك صلاحية عرض سجلّ العمليات.')]
     public function index(Request $request): JsonResponse
@@ -34,9 +35,11 @@ class AuditLogController extends Controller
             ->paginate(20);
 
         /*
-         * قائمة المنفّذين تُبنى من السجلّ نفسه لا من جدول المستخدمين كاملاً:
-         * فلترة على شخص لم ينفّذ شيئاً تُرجع صفحة فارغة بلا فائدة. والاستعلام
-         * منفصل عن الترقيم عمداً — القائمة يجب أن تشمل الجميع لا صفحةً واحدة.
+         * The list of actors is built from the log itself rather than from the
+         * whole users table: filtering on somebody who has never performed
+         * anything returns an empty page and serves no purpose. The query is
+         * deliberately kept apart from the pagination — the list has to cover
+         * everyone, not a single page.
          */
         $actors = User::query()
             ->whereIn('id', AuditLog::query()->whereNotNull('user_id')->distinct()->pluck('user_id'))
@@ -44,10 +47,12 @@ class AuditLogController extends Controller
             ->get(['id', 'name']);
 
         /*
-         * مسميات الصلاحيات والأدوار تُرسَل مع السجلّ لا تُستنسخ في الواجهة:
-         * مصدرها البذرة نفسها، فلا تتباعد النسختان. ولا تصلح هنا نقطة
-         * /users/meta لأنها تتطلّب users.manage، وقد يملك قارئ السجلّ
-         * audit.view وحدها — وهذا بالضبط ما تتيحه الصلاحيات الفردية.
+         * The permission and role labels are shipped with the log instead of
+         * being copied into the front end: they come from the seeder itself, so
+         * the two copies cannot drift apart. The /users/meta endpoint is no use
+         * here because it requires users.manage, whereas a reader of the log may
+         * hold audit.view and nothing else — which is precisely what individual
+         * permissions make possible.
          */
         $labels = [
             'permissions' => RolesAndPermissionsSeeder::PERMISSIONS,

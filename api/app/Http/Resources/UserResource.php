@@ -7,18 +7,20 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * شكل المستخدم كما تراه الواجهة.
+ * The shape of a user as the front end sees it.
  *
- * عقد ثابت: تغيير عمود في قاعدة البيانات لا يغيّر هذي الاستجابة تلقائياً،
- * وكلمة المرور لا يمكن أن تتسرّب لأنها غير مذكورة هنا أصلاً.
+ * A fixed contract: changing a column in the database does not change this
+ * response of its own accord, and the password cannot leak because it is not
+ * named here in the first place.
  */
 class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         /*
-         * ثلاث مجموعات تحتاجها الواجهة لتصف كل صلاحية بدقة: أهي من الدور،
-         * أم منحة فردية فوقه، أم استثناءٌ محجوب منه.
+         * Three sets the front end needs in order to describe every permission
+         * precisely: does it come from the role, is it an individual grant on
+         * top of the role, or is it an exception withheld from it.
          */
         $fromRole = $this->roles->flatMap->permissions->pluck('name')->unique()->values();
         $direct = $this->permissions->pluck('name')->values();
@@ -34,24 +36,26 @@ class UserResource extends JsonResource
             'role_label' => $this->roles->first()?->name
                 ? (RolesAndPermissionsSeeder::ROLES[$this->roles->first()->name]['label'] ?? null)
                 : null,
-            // ما يستطيعه فعلاً: الدور + المنح − المحجوب (getAllPermissions تطرح المحجوب)
+            // What they can actually do: role + grants − denied (getAllPermissions subtracts the denied)
             'permissions' => $this->getAllPermissions()->pluck('name')->values(),
-            // ما يمنحه الدور وحده — أساس تمييز «من الدور» عن «منحة»
+            // What the role alone grants — the basis for telling "from the role" apart from "a grant"
             'role_permissions' => $fromRole,
-            // المنح المباشر كما هي مخزَّنة
+            // The direct grants exactly as they are stored
             'direct_permissions' => $direct,
             /*
-             * المنح الفردي الحقيقي = المباشر ناقص ما يمنحه الدور أصلاً.
-             * منحٌ مكرّر لصلاحية يمنحها الدور ليس «إضافياً»، وعرضه كذلك مضلّل.
+             * The truly individual grants = the direct ones minus whatever the
+             * role already grants. A grant that merely repeats a permission the
+             * role gives is not "extra", and showing it as such misleads.
              */
             'extra_permissions' => $direct->diff($fromRole)->values(),
-            // استثناءات من الدور: يمنحها الدور والمستخدم لا يملكها
+            // Exceptions to the role: it grants them, yet the user does not hold them
             'denied_permissions' => $denied,
             'created_at' => $this->created_at,
 
             /*
-             * ما يستطيع المستخدم الحالي فعله بهذا الصف.
-             * تُحسب في الخادم لا في الواجهة، فلا يوجد منطق تفويض مكرّر.
+             * What the current user is able to do with this row.
+             * Worked out on the server, not in the front end, so no
+             * authorization logic is duplicated.
              */
             'can' => [
                 'update' => $request->user()?->can('update', $this->resource) ?? false,

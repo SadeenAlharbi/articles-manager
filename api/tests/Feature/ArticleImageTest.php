@@ -11,14 +11,15 @@ use Tests\Concerns\FakesKnowledgePlatform;
 use Tests\TestCase;
 
 /**
- * رفع صورة المقال.
+ * Uploading the article image.
  *
- * أهشّ ما في المشروع، لأن كل ما فيه يفشل **بصمت**: multipart لا يمرّ عبر PUT
- * فيصل الملف فارغاً بلا خطأ، والمصفوفة غير المسطّحة تُفشل Guzzle برسالة غامضة،
- * وترويسة Content-Type مكتوبة يدوياً تُنتج طلباً بلا حدّ فاصل.
+ * The most fragile thing in the project, because everything in it fails
+ * **silently**: multipart does not survive a PUT, so the file arrives empty
+ * with no error; an unflattened array makes Guzzle fail with an opaque message;
+ * and a hand-written Content-Type header produces a request with no boundary.
  *
- * فالاختبارات هنا تفحص **شكل الطلب الصادر** لا الاستجابة: هذي هي الطبقة التي
- * نملكها، وفيها تقع الأخطاء الثلاثة.
+ * So the tests here inspect the **shape of the outgoing request** rather than
+ * the response: that is the layer we own, and it is where all three bugs live.
  */
 class ArticleImageTest extends TestCase
 {
@@ -43,7 +44,7 @@ class ArticleImageTest extends TestCase
         return UploadedFile::fake()->image($name, 800, 450);
     }
 
-    /* ------------------------------- الإنشاء ------------------------------- */
+    /* ------------------------------ Creating ----------------------------- */
 
     public function test_creating_with_an_image_sends_multipart(): void
     {
@@ -64,18 +65,19 @@ class ArticleImageTest extends TestCase
             'content' => 'نصّ.',
         ])->assertSuccessful();
 
-        // لا نُعقّد الحالة الشائعة من أجل الاستثناء
+        // We do not complicate the common case for the sake of the exception
         Http::assertSent(fn ($request) => ! $request->isMultipart());
     }
 
-    /* ------------------------------- التعديل ------------------------------- */
+    /* ------------------------------ Updating ----------------------------- */
 
     /**
-     * التعديل مع صورة يخرج POST لا PUT.
+     * An update carrying an image goes out as a POST, not a PUT.
      *
-     * PHP لا يفكّ ترميز multipart إلا في POST. و`_method=PUT` انتحالٌ أصلي في
-     * Laravel يجعل موجّه المنصّة يرى الطلب PUT فيطابق مسارها القائم — فلا مسار
-     * جديد هناك ولا تغيير في العقد.
+     * PHP only decodes multipart on POST. And `_method=PUT` is Laravel's own
+     * method spoofing, which makes the platform's router see the request as a
+     * PUT and match its existing route — so there is no new route on that side
+     * and no change to the contract.
      */
     public function test_updating_with_an_image_spoofs_the_method(): void
     {
@@ -105,13 +107,14 @@ class ArticleImageTest extends TestCase
             && ! $request->isMultipart());
     }
 
-    /* ------------------------- تسطيح المصفوفات ------------------------- */
+    /* ------------------------- Flattening arrays ------------------------- */
 
     /**
-     * التصنيفات تُكتب tags[0] و tags[1].
+     * Tags are written out as tags[0] and tags[1].
      *
-     * multipart لا يعرف المصفوفات المتداخلة: قيمة مصفوفة تُفشل Guzzle. وهذي
-     * الصيغة يعيد PHP تجميعها مصفوفةً عند الاستقبال، فتصل المنصّةَ تصنيفاتٍ.
+     * multipart knows nothing about nested arrays: an array value makes Guzzle
+     * fail. PHP reassembles this notation back into an array on receipt, so the
+     * platform receives them as tags.
      */
     public function test_tags_are_flattened_for_multipart(): void
     {
@@ -129,9 +132,9 @@ class ArticleImageTest extends TestCase
         });
     }
 
-    /* -------------------------------- الرفض -------------------------------- */
+    /* ----------------------------- Rejection ----------------------------- */
 
-    /** ملف ليس صورة يُرفض عندنا قبل أن يُرفع عبر الشبكة. */
+    /** A non-image file is rejected on our side before it goes over the network. */
     public function test_a_non_image_file_is_rejected_before_the_network(): void
     {
         $this->post('/api/v1/articles', [
@@ -143,20 +146,20 @@ class ArticleImageTest extends TestCase
         Http::assertNothingSent();
     }
 
-    /** والصورة الضخمة كذلك — طبقتان لا واحدة. */
+    /** And so is an oversized image — two layers of defence, not one. */
     public function test_an_oversized_image_is_rejected_before_the_network(): void
     {
         $this->post('/api/v1/articles', [
             'title' => 'مقال',
             'content' => 'نصّ.',
-            // الحدّ 5 ميجابايت في الطرفين
+            // The limit is 5 MB on both ends
             'image' => UploadedFile::fake()->create('huge.jpg', 6000, 'image/jpeg'),
         ])->assertStatus(422)->assertJsonValidationErrors('image');
 
         Http::assertNothingSent();
     }
 
-    /* ------------------------------- السجلّ ------------------------------- */
+    /* --------------------------- The audit log --------------------------- */
 
     public function test_the_audit_records_that_an_image_was_attached(): void
     {

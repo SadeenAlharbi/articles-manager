@@ -13,23 +13,24 @@ Route::prefix('v1')->group(function () {
         ->middleware('throttle:5,1');
 
     /*
-     * auth:sanctum  → مَن أنت؟          (مصادقة)
-     * active        → هل حسابك مفعّل؟   (حالة الحساب)
-     * permission:…  → هل يُسمح لك؟      (تفويض، على كل مسار)
+     * auth:sanctum  → who are you?           (authentication)
+     * active        → is your account live?  (account state)
+     * permission:…  → are you allowed to?    (authorisation, on every route)
      */
     Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/logout', [AuthController::class, 'logout']);
 
-        /* ------------------------------ المقالات ------------------------------ */
+        /* ------------------------------ Articles ------------------------------ */
 
         Route::get('/articles', [ArticleController::class, 'index'])
             ->middleware('permission:articles.view');
 
         /*
-         * التصنيفات قبل /articles/{slug} في الترتيب عمداً: لو جاءت بعده لالتقط
-         * المسار المتغيّر كلمة "categories" وعدّها اسم مقال.
+         * Categories comes before /articles/{slug} in the ordering on purpose: had
+         * it come after, the wildcard route would have caught the word "categories"
+         * and taken it for an article slug.
          */
         Route::get('/articles/categories', [ArticleController::class, 'categories'])
             ->middleware('permission:articles.view');
@@ -47,9 +48,12 @@ Route::prefix('v1')->group(function () {
             ->middleware('permission:articles.delete');
 
         /*
-         * النشر والسحب إجراءان مستقلّان لا تعديلٌ عام: لكلٍّ صلاحيته على المسار
-         * نفسه، وسطره الصريح في سجلّ العمليات. ولو مرّا عبر PUT العام لاختفت
-         * «نشر مقال» داخل «تعديل مقال» ولحرسهما فحصٌ داخل المتحكّم لا حارس مسار.
+         * Publishing and unpublishing are two standalone actions, not one generic
+         * update: each has its own permission on its own route, and its own
+         * explicit line in the audit log. Had they gone through the general PUT,
+         * "publish an article" would have vanished inside "edit an article", and
+         * both would have been guarded by a check inside the controller rather
+         * than by a route guard.
          */
         Route::post('/articles/{slug}/publish', [ArticleController::class, 'publish'])
             ->middleware('permission:articles.publish');
@@ -57,11 +61,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/articles/{slug}/draft', [ArticleController::class, 'draft'])
             ->middleware('permission:articles.draft');
 
-        /* ---------------------------- المستخدمون ---------------------------- */
+        /* ------------------------------ Users ------------------------------- */
         /*
-         * الـmiddleware يحرس المسار: هل تملك الصلاحية أصلاً؟
-         * و UserPolicy داخل المتحكّم تحرس الهدف: هل تعلو على هذا الشخص؟
-         * لا يوجد DELETE — التعطيل بديل الحذف، والسجلّات تبقى.
+         * The middleware guards the route: do you hold the permission at all?
+         * UserPolicy inside the controller guards the target: do you outrank this
+         * particular person?
+         * There is no DELETE — disabling stands in for deletion, and the records
+         * remain.
          */
         Route::get('/users/meta', [UserController::class, 'meta'])
             ->middleware('permission:users.manage');
@@ -87,13 +93,14 @@ Route::prefix('v1')->group(function () {
         Route::put('/users/{user}/permissions', [UserController::class, 'updatePermissions'])
             ->middleware('permission:roles.manage');
 
-        /* ------------------------- لوحة المعلومات ------------------------- */
+        /* --------------------------- Dashboard ---------------------------- */
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->middleware('permission:analytics.view');
 
-        /* --------------------------- سجلّ التدقيق -------------------------- */
-        // صلاحية فردية لا دور: يمكن منح قراءة السجلّ لشخص بعينه
-        // دون ترقيته إلى مشرف — وهذا جوهر الصلاحيات الفردية.
+        /* ---------------------------- Audit log --------------------------- */
+        // An individual permission, not a role: reading the log can be granted to
+        // one specific person without promoting them to supervisor — and that is
+        // the whole point of per-user permissions.
         Route::get('/audit-logs', [AuditLogController::class, 'index'])
             ->middleware('permission:audit.view');
     });

@@ -1,14 +1,16 @@
 /*
- * شعار منصّة المعرفة السعودية — نفس ملف الشعار المستخدم في المشروع
- * الأول (public/images/logo.png)، فتبدو الواجهتان نظاماً واحداً.
+ * The logo of the Saudi knowledge platform — the very same logo file used in
+ * the first project (public/images/logo.png), so the two interfaces read as
+ * one system.
  *
- * صيغتان:
- *   card  — الشعار الملوّن داخل مربّع أبيض، للأرضيات الفاتحة
- *   white — الشعار أبيض خالصاً بلا إطار، للأرضيات الداكنة
+ * Two variants:
+ *   card  — the coloured logo inside a white square, for light surfaces
+ *   white — a pure white logo with no frame, for dark surfaces
  *
- * الصيغة البيضاء تُنفَّذ بمرشّح brightness(0) invert(1): يُسقط كل
- * الألوان إلى الأسود ثم يعكسه أبيض. أنظف من إبقاء شعار ملوّن على
- * خلفية داكنة أو حبسه في مربّع أبيض يقطع انسياب الصورة.
+ * The white variant is produced with a brightness(0) invert(1) filter: it
+ * crushes every colour to black and then inverts it to white. That is cleaner
+ * than leaving a coloured logo on a dark background, or boxing it into a white
+ * square that cuts across the flow of the image.
  */
 export default function Logo({ size = 40, variant = 'card', className = '' }) {
   if (variant === 'white') {

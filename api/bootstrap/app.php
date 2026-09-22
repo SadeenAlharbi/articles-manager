@@ -11,7 +11,7 @@ use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        // لا ملف مسارات web: هذا المشروع واجهة برمجية بحتة، وواجهته في ui/
+        // No web routes file: this project is a pure API, and its interface lives in ui/
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
-            // يوقف توكناً يخصّ حساباً عُطِّل بعد إصداره.
+            // Stops a token that belongs to an account disabled after it was issued.
             'active' => EnsureAccountIsActive::class,
         ]);
     })

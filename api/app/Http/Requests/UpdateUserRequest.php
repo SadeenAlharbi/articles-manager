@@ -7,10 +7,11 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * تعديل بيانات حساب: الاسم والبريد وكلمة المرور فقط.
+ * Editing an account's details: the name, the email and the password only.
  *
- * الأدوار والصلاحيات لها مساراتها الخاصة لأنها تحرسها صلاحية مختلفة
- * (roles.manage) وتُنتج سطر تدقيق مختلفاً.
+ * Roles and permissions have routes of their own, because a different
+ * permission guards them (roles.manage) and they produce a different audit
+ * entry.
  */
 class UpdateUserRequest extends FormRequest
 {
@@ -32,7 +33,7 @@ class UpdateUserRequest extends FormRequest
                 'sometimes', 'required', 'email', 'max:191',
                 Rule::unique('users', 'email')->ignore($target?->id),
             ],
-            // كلمة المرور اختيارية: تركها فارغة يعني الإبقاء على القديمة.
+            // The password is optional: leaving it empty means keeping the old one.
             'password' => ['sometimes', 'nullable', 'string', 'min:8'],
         ];
     }

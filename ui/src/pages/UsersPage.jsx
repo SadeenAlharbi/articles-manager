@@ -1,7 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../auth/AuthContext'
-import { Alert, Badge, Button, ConfirmDialog, EmptyState, Input, Modal, Select, Spinner } from '../components/ui'
+import {
+  Alert,
+  Badge,
+  Button,
+  CONTROL_CLASS,
+  ConfirmDialog,
+  EmptyState,
+  Input,
+  Modal,
+  Select,
+  SelectControl,
+  Spinner,
+} from '../components/ui'
 
 /*
  * صفحة المستخدمين: الحسابات والأدوار والصلاحيات الفردية في مكان واحد.
@@ -213,8 +225,8 @@ export default function UsersPage() {
   return (
     <div>
       {/*
-        لا عنوان هنا: الشريط العلوي في Layout يعرض «المستخدمون» ووصفها
-        أصلاً، وتكراره داخل الصفحة يضاعف نفس السطر مرتين على الشاشة.
+        لا عنوان هنا: Layout يعرض «المستخدمون» ووصفها في صدر الصفحة أصلاً،
+        وتكراره يضاعف نفس السطر مرتين على الشاشة.
       */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-2">
@@ -223,21 +235,18 @@ export default function UsersPage() {
             onChange={(event) => setSearch(event.target.value)}
             placeholder="ابحث بالاسم أو البريد..."
             aria-label="بحث"
-            className="w-64 rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm
-              outline-none transition-colors focus:border-brand-500"
+            className={`${CONTROL_CLASS} w-64 px-3`}
           />
 
-          <select
+          <SelectControl
             value={status}
             onChange={(event) => setStatus(event.target.value)}
             aria-label="تصفية حسب الحالة"
-            className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm
-              outline-none transition-colors focus:border-brand-500"
           >
             <option value="">كل الحالات</option>
             <option value="active">مفعّل</option>
             <option value="inactive">معطَّل</option>
-          </select>
+          </SelectControl>
         </div>
 
         <Button onClick={openCreate} disabled={assignableRoles.length === 0}>
@@ -257,7 +266,7 @@ export default function UsersPage() {
           description={search || status ? 'جرّب تعديل البحث أو التصفية.' : 'لم يُنشأ أي حساب بعد.'}
         />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-ink-200 bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-ink-100 bg-white">
           <table className="w-full text-right text-sm">
             <thead className="border-b border-ink-100 bg-ink-50 text-xs text-ink-500">
               <tr>

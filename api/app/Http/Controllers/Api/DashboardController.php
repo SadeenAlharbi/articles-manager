@@ -10,35 +10,41 @@ use Dedoc\Scramble\Attributes\Response as ApiResponse;
 use Illuminate\Http\JsonResponse;
 
 /**
- * أرقام لوحة الإدارة.
+ * The figures of the admin dashboard.
  *
- * التجميع يقع في الخادم لا في الواجهة: التوكن لا يغادر الخادم، والمتصفّح يرسل
- * طلباً واحداً بدل خمسة فلا تُبنى الشاشة على مراحل. والثمن معروف ومذكور —
- * عدّة طلبات متتابعة إلى المنصّة عند كل فتح.
+ * The aggregation happens on the server, not in the front end: the token never
+ * leaves the server, and the browser sends one request instead of five, so the
+ * screen is not built up in stages. The price is known and stated here — a
+ * handful of sequential requests to the platform on every open.
  *
- * كل رقم هنا استعلام حقيقي. لا بيانات وهمية، وإن غاب مصدرها تُرجَع القيمة
- * فارغة صراحةً لتعرض الواجهة حالة فراغ بدل رقم مخترع.
+ * Every number here is a real query. No made-up data, and when its source is
+ * missing the value is returned explicitly empty, so the front end shows an
+ * empty state instead of an invented number.
  *
- * دَين تقني مرصود (تدقيق المرحلة ١٦): الطلبات الخمسة تتابعية، فزمن اللوحة هو
- * مجموعها لا أطولها. علاجه Http::pool — تُرسل معاً وتُنتظر مرة واحدة. لم يُطبَّق
- * الآن لأن pool يغيّر شكل معالجة الفشل الجزئي: اليوم يكفي أن يُرجع كل استعلام
- * null عند تعذّره، ومع pool يلزم تمييز أي عنصر في المجموعة سقط.
+ * Technical debt, on the record (phase 16 audit): the five requests run one
+ * after another, so the dashboard's latency is their sum rather than the
+ * longest of them. The cure is Http::pool — they are sent together and awaited
+ * once. It has not been applied yet because pool changes the shape of
+ * partial-failure handling: today it is enough for each query to return null
+ * when it cannot be answered, whereas with pool one has to tell which member of
+ * the batch fell over.
  */
 #[Group('لوحة المعلومات', 'أرقام المنصّة وآخر العمليات في مكان واحد.', weight: 4)]
 class DashboardController extends Controller
 {
-    /** عدد المقالات المعروضة في «آخر المقالات» و«الأكثر قراءة». */
+    /** How many articles are shown under "Latest articles" and "Most read". */
     private const LIST_SIZE = 5;
 
     public function __construct(private readonly KnowledgePlatform $platform) {}
 
     /**
-     * أرقام المنصّة وآخر العمليات.
+     * The platform's figures and the latest operations.
      *
-     * الصلاحية المطلوبة: `analytics.view` (عرض الإحصائيات).
+     * Required permission: `analytics.view` (viewing the statistics).
      *
-     * `counts` تُقرأ من ترقيم المنصّة لا بعدّ الصفوف: نطلب صفحة بعنصر واحد
-     * ونأخذ `meta.total` — فلا ننقل آلاف المقالات لنعدّها.
+     * `counts` is read from the platform's pagination rather than by counting
+     * rows: we ask for a page of a single item and take `meta.total` — so we
+     * never transfer thousands of articles merely to count them.
      */
     #[ApiResponse(403, description: 'لا تملك صلاحية عرض الإحصائيات.')]
     #[ApiResponse(502, description: 'منصّة المعرفة غير متاحة حالياً.')]
@@ -55,8 +61,9 @@ class DashboardController extends Controller
             'most_viewed' => $this->articles(['status' => 'published', 'sort' => 'views']),
             'top_categories' => $this->topCategories(),
             /*
-             * نفس شكل صفوف /audit-logs بالضبط، فتعيد الواجهة استعمال دوالها
-             * في الترجمة والعرض بلا تحويل ثانٍ.
+             * Exactly the same row shape as /audit-logs, so the front end reuses
+             * its own functions for translating and displaying them with no
+             * second conversion.
              */
             'latest_operations' => AuditLog::with('user:id,name')
                 ->latest('id')
@@ -68,11 +75,12 @@ class DashboardController extends Controller
     /* --------------------------------------------------------------------- */
 
     /**
-     * إجمالي المقالات في حالة بعينها.
+     * The total number of articles in one particular status.
      *
-     * per_page=1 مقصود: نحتاج meta.total وحده، فلا داعي لنقل الصفحة كاملة.
-     * وnull عند التعذّر لا صفر — الصفر رقم يعني «لا مقالات»، والغياب يعني
-     * «لا نعرف»، والواجهة تعرضهما مختلفَين.
+     * per_page=1 is deliberate: we need meta.total alone, so there is no reason
+     * to transfer a whole page. And null when it cannot be answered, not zero —
+     * zero is a number and means "no articles", while absence means "we do not
+     * know", and the front end shows the two differently.
      */
     private function total(string $status): ?int
     {
@@ -106,10 +114,11 @@ class DashboardController extends Controller
     }
 
     /**
-     * أكثر التصنيفات نشراً.
+     * The most published-in categories.
      *
-     * المنصّة تُرجع posts_count مع كل تصنيف، فالترتيب عندنا لا استعلام إضافي.
-     * والتصنيفات الفارغة تُستبعد: صفٌّ بصفر لا يقول شيئاً في قائمة «الأكثر».
+     * The platform returns posts_count with every category, so the ordering is
+     * done on our side and costs no extra query. Empty categories are left out:
+     * a row reading zero says nothing in a list of "the most".
      */
     private function topCategories(): array
     {

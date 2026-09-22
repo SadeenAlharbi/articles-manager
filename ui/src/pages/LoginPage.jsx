@@ -5,14 +5,15 @@ import Logo from '../components/Logo'
 import { IconArticles, IconAudit, IconEye, IconEyeOff, IconLock, IconMail, IconShield, IconUsers } from '../components/icons'
 
 /*
- * صفحة الدخول.
+ * The login page.
  *
- * لوحتان: الهوية على اليمين (اتجاه القراءة العربي يبدأ منه)، والنموذج
- * على اليسار. الخلفية صورة الرياض بطبقة خضراء تُخفض تباينها حتى يبقى
- * النص مقروءاً فوقها — الصورة خلفية لا بطلة الصفحة.
+ * Two panels: the identity on the right (which is where Arabic reading
+ * begins), and the form on the left. The background is a photograph of Riyadh
+ * under a green layer that pulls its contrast down so the text stays readable
+ * over it — the image is a background, not the hero of the page.
  *
- * لا تسجيل دخول عبر Google هنا: مستخدمو نظام الإدارة يُنشئهم مديرو
- * النظام، ولا يسجّلون أنفسهم بحساب خارجي.
+ * No signing in with Google here: admin system accounts are created by the
+ * system administrators; nobody registers themselves with an outside account.
  */
 
 const FEATURES = [
@@ -46,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1fr_30rem]">
-      {/* ------------------------------ الهوية ------------------------------ */}
+      {/* ----------------------------- Identity ----------------------------- */}
       <section className="relative hidden overflow-hidden lg:block">
         <img
           src="/riyadh.jpg"
@@ -56,19 +57,22 @@ export default function LoginPage() {
         />
 
         {/*
-          التعتيم أفقي لا رأسي: معتم بالكامل على اليسار حيث يقع النص فيقرأ
-          على أرضية نظيفة، ويتلاشى تماماً نحو اليمين فيظهر برج المملكة
-          وأضواء المدينة بألوانها كاملة. هذا هو أساس تصميم المرجع.
+          The scrim runs horizontally, not vertically: fully opaque on the left
+          where the text sits, so it reads against a clean ground, and fading
+          away entirely towards the right so the Kingdom Tower and the lights of
+          the city keep their full colour. This is the basis of the reference
+          design.
         */}
         <div className="absolute inset-0 bg-gradient-to-r from-flag-950 via-flag-950/72 to-transparent" />
 
-        {/* شريط علوي خفيف يثبّت الشعار فوق السماء دون تعتيم الصورة كلها */}
+        {/* A light top band that seats the logo against the sky without darkening the whole image */}
         <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-flag-950/55 to-transparent" />
 
         {/*
-          المنحنى الأخضر يملأ الزاوية السفلى اليمنى وترتفع حافّته نحو اليمين،
-          وتقف العبارة الختامية فوقه. طبقتان: حافّة عليا فاتحة شفّافة، وكتلة
-          سفلى صلبة تعطي النص أرضيةً واضحة.
+          The green curve fills the lower-right corner with its edge rising
+          towards the right, and the closing line stands on top of it. Two
+          layers: a pale translucent upper edge, and a solid lower mass that
+          gives the text a clear ground to sit on.
         */}
         <svg
           className="absolute bottom-0 right-0 h-[55%] w-[85%]"
@@ -82,9 +86,9 @@ export default function LoginPage() {
 
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
           {/*
-            ml-auto فيزيائية تدفع الكتلة إلى يمين اللوحة. لا نستخدم items-end
-            هنا لأن الصفحة RTL فتُترجم flex-end إلى اليسار — وهي سبب ظهور
-            الشعار على اليسار سابقاً.
+            A physical ml-auto pushes the block to the right of the panel. We do
+            not use items-end here, because the page is RTL and flex-end then
+            resolves to the left — which is what put the logo on the left before.
           */}
           <div className="ml-auto flex w-fit flex-col items-center gap-2">
             <Logo size={44} variant="white" className="drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]" />
@@ -94,8 +98,9 @@ export default function LoginPage() {
           </div>
 
           {/*
-            mr-auto (فيزيائية لا منطقية) تُبقي الكتلة في يسار اللوحة فوق
-            الجزء المعتم، ويبقى برج المملكة على اليمين بلا نص فوقه.
+            mr-auto (physical, not logical) keeps the block on the left of the
+            panel, over the darkened part, so the Kingdom Tower stays on the
+            right with no text laid over it.
           */}
           <div className="mr-auto w-full max-w-[24rem]">
             <h1 className="text-[1.9rem] font-bold leading-[1.45]">
@@ -107,7 +112,7 @@ export default function LoginPage() {
               والمستخدمين والصلاحيات بسهولة وأمان.
             </p>
 
-            {/* الميزات بفواصل رأسية بينها — كما في المرجع */}
+            {/* The features with vertical rules between them — as in the reference */}
             <div className="mt-7 flex divide-x divide-white/20">
               {FEATURES.map(({ icon: Icon, label }) => (
                 <div
@@ -121,7 +126,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* العبارة الختامية فوق الكتلة الخضراء مباشرة */}
+          {/* The closing line, sitting directly on the green mass */}
           <p className="text-right text-sm font-semibold leading-loose text-white">
             معاً نحو محتوى معرفي
             <br />
@@ -130,7 +135,7 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* ------------------------------ النموذج ----------------------------- */}
+      {/* ------------------------------- Form ------------------------------- */}
       <section className="flex flex-col justify-center bg-ink-25 px-6 py-12 sm:px-12">
         <div className="mx-auto w-full max-w-sm">
           <div className="mb-9 flex flex-col items-center text-center">

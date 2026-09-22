@@ -1,15 +1,18 @@
 @import 'tailwindcss';
 
 /*
- * IBM Plex Sans Arabic — خط نظام التصميم الحكومي السعودي، وهو الخط الذي
- * يعرّفه core.css المستورد في منصّة المعرفة أصلاً.
+ * IBM Plex Sans Arabic — the typeface of the Saudi government design system,
+ * and the one core.css already defines for the knowledge platform itself.
  *
- * مستضاف ذاتياً عبر @fontsource لا عبر <link> إلى شبكة خارجية: التبعية
- * لشبكة وقت التشغيل تعني أن تأخّرها أو حجبها يُظهر الواجهة بخط النظام،
- * وخط النظام يختلف من جهاز لآخر. وكل ملف يحمل نطاقات محارف متعدّدة بينها
- * العربي، فلا ينزّل المتصفّح إلا ما تحتاجه الصفحة فعلاً.
+ * Self-hosted through @fontsource rather than a <link> to an outside network:
+ * a runtime dependency on a third party means that if it is slow or blocked
+ * the interface renders in the system font, and the system font differs from
+ * one machine to the next. Each file carries several character ranges,
+ * Arabic among them, so the browser only downloads what the page actually
+ * needs.
  *
- * الأوزان الأربعة هي كل ما تستعمله الواجهة: عادي، متوسط، شبه عريض، عريض.
+ * These four weights are everything the interface uses: regular, medium,
+ * semibold, bold.
  */
 @import '@fontsource/ibm-plex-sans-arabic/400.css';
 @import '@fontsource/ibm-plex-sans-arabic/500.css';
@@ -17,16 +20,22 @@
 @import '@fontsource/ibm-plex-sans-arabic/700.css';
 
 /*
- * نظام التصميم.
+ * The design system.
  *
- * الهوية نفسها المستخدمة في منصّة المعرفة — أخضر سعودي ومحايدات دافئة —
- * فيبدو المشروعان عائلة واحدة. الألوان بمساحة oklch لأنها تحافظ على
- * الإدراك البصري للسطوع بين الدرجات، بخلاف hex.
+ * The same identity used by the knowledge platform — Saudi green and warm
+ * neutrals — with the values copied verbatim from @theme in the main
+ * platform, so the two shades never drift apart. The colours are in the oklch
+ * space because it preserves perceived lightness across the ramp, which hex
+ * does not.
+ *
+ * And the green is a colour of action, not a background: it never covers a
+ * large surface, it stays confined to the thin top bar, the active tab, the
+ * buttons, and the indicator icons.
  */
 @theme {
   --font-sans: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
 
-  /* الأخضر السعودي — لون الفعل والهوية */
+  /* Saudi green — the colour of action and identity */
   --color-brand-50: oklch(97% 0.02 152);
   --color-brand-100: oklch(93% 0.045 152);
   --color-brand-200: oklch(86% 0.08 152);
@@ -35,16 +44,10 @@
   --color-brand-600: oklch(38% 0.1 152);
   --color-brand-700: oklch(30% 0.085 152);
 
-  /* الأخضر العميق — الشريط الجانبي، مأخوذ من هوية المنصّة */
-  --color-flag-800: oklch(26% 0.06 158);
-  --color-flag-900: oklch(21% 0.05 158);
+  /* Deep green — the scrim over the login page image, and nowhere else */
   --color-flag-950: oklch(17% 0.04 158);
 
-  /* لمسة رملية — للتمييز الخفيف لا للزينة */
-  --color-sand-100: oklch(94% 0.045 75);
-  --color-sand-500: oklch(62% 0.11 55);
-
-  /* محايدات دافئة بميل خفيف نحو الأخضر — لا رمادي محايد باهت */
+  /* Warm neutrals leaning slightly green — not a flat, washed-out grey */
   --color-ink-25: oklch(99% 0.003 90);
   --color-ink-50: oklch(97.5% 0.004 90);
   --color-ink-100: oklch(94% 0.006 90);
@@ -56,8 +59,7 @@
   --color-ink-700: oklch(29% 0.012 90);
   --color-ink-900: oklch(17% 0.012 90);
 
-  /* ظلال خافتة — عمق بلا ثقل */
-  --shadow-card: 0 1px 2px oklch(17% 0.012 90 / 0.04), 0 1px 3px oklch(17% 0.012 90 / 0.03);
+  /* A lift shadow on hover only — at rest cards sit flat behind a hairline border, no shadow, as on the main platform */
   --shadow-lift: 0 4px 12px oklch(17% 0.012 90 / 0.07);
 }
 
@@ -72,18 +74,18 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* عناوين متوازنة الأسطر — لا تُترك كلمة وحيدة في سطر */
+/* Headings with balanced lines — never leave a single word stranded on a line */
 h1, h2, h3 {
   text-wrap: balance;
 }
 
-/* حالة تركيز واضحة لمستخدمي لوحة المفاتيح */
+/* A clear focus state for keyboard users */
 :focus-visible {
   outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
 }
 
-/* احترام تفضيل تقليل الحركة */
+/* Respect the reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

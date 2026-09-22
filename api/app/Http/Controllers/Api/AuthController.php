@@ -13,25 +13,29 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 /**
- * مصادقة نظام إدارة المقالات.
+ * Authentication for the article management system.
  *
- * مستخدمو هذا النظام ليسوا مستخدمي منصّة المعرفة: قاعدة بيانات مستقلة،
- * وحسابات مستقلة، ودورة حياة مستقلة. لا تُخلط الهويتان.
+ * The users of this system are not the users of the knowledge platform: a
+ * separate database, separate accounts, a separate life cycle. The two
+ * identities are never mixed.
  *
- * لا جلسات ولا كوكيز: الواجهة تطبيق React منفصل، فالمصادقة بتوكن Sanctum
- * يُرسَل في ترويسة Authorization مع كل طلب.
+ * No sessions and no cookies: the front end is a standalone React app, so
+ * authentication is a Sanctum token sent in the Authorization header with
+ * every request.
  */
 #[Group('المصادقة', 'تسجيل الدخول والخروج وبيانات المستخدم الحالي.', weight: 0)]
 class AuthController extends Controller
 {
     /**
-     * تسجيل الدخول.
+     * Signing in.
      *
-     * المسار الوحيد المفتوح بلا توكن، ومحدود بـ5 محاولات في الدقيقة. يُرجع توكن
-     * Sanctum يُرسَل بعدها في ترويسة `Authorization: Bearer`.
+     * The only route open without a token, and it is capped at 5 attempts per
+     * minute. It returns a Sanctum token that is sent from then on in the
+     * `Authorization: Bearer` header.
      *
-     * فحص التعطيل يقع **بعد** فحص كلمة المرور عمداً: لو سبقه لأمكن معرفة أي
-     * البُرد مسجَّلة في النظام بمجرد اختلاف الرسالة.
+     * The disabled-account check deliberately comes **after** the password
+     * check: had it come first, the mere difference in the message would reveal
+     * which email addresses are registered in the system.
      */
     public function login(Request $request): JsonResponse
     {
@@ -43,8 +47,9 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         /*
-         * فحص واحد للحالتين — بريد غير موجود وكلمة سر خاطئة — برسالة واحدة.
-         * لو فُرِّق بينهما لأمكن لأي شخص أن يكتشف البُرد المسجّلة في النظام
+         * One check for both cases — an email that does not exist and a wrong
+         * password — with one and the same message. Were they told apart,
+         * anybody could discover which addresses are registered in the system
          * (User Enumeration).
          */
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
@@ -54,14 +59,16 @@ class AuthController extends Controller
         }
 
         /*
-         * الحساب المعطَّل: يُرفض بعد التحقّق من كلمة المرور لا قبله.
+         * A disabled account: it is rejected after the password has been
+         * verified, not before.
          *
-         * الترتيب مقصود — لو رددنا رسالة التعطيل قبل فحص كلمة المرور،
-         * لصار بإمكان أي شخص أن يعرف أن بريداً ما مسجَّل ومعطَّل بمجرد
-         * تخمين البريد. الآن لا تصله هذي المعلومة إلا إن كان يملك كلمة
-         * المرور الصحيحة أصلاً.
+         * The ordering is intentional — if we returned the disabled message
+         * before checking the password, anybody could learn that some address
+         * is registered and disabled just by guessing the address. As it
+         * stands, that information reaches them only if they already hold the
+         * correct password.
          *
-         * و403 لا 401: الهوية أُثبتت، لكن الوصول ممنوع.
+         * And 403, not 401: identity was proven, but access is denied.
          */
         if (! $user->is_active) {
             return response()->json(['message' => EnsureAccountIsActive::MESSAGE], 403);
@@ -76,7 +83,7 @@ class AuthController extends Controller
         ]);
     }
 
-    /** بيانات المستخدم الحالي — تستدعيها الواجهة عند كل تحميل. */
+    /** The current user's details — the front end calls this on every load. */
     public function me(Request $request): JsonResponse
     {
         return response()->json([
@@ -85,7 +92,7 @@ class AuthController extends Controller
         ]);
     }
 
-    /** الاسم العربي لدور المستخدم، أو null إن لم يكن له دور. */
+    /** The Arabic name of the user's role, or null if they have none. */
     private function roleLabel(User $user): ?string
     {
         $role = $user->getRoleNames()->first();
@@ -94,11 +101,13 @@ class AuthController extends Controller
     }
 
     /**
-     * العنوان العام لمنصّة المعرفة — تبني منه الواجهة روابط المقالات.
+     * The public address of the knowledge platform — the front end builds
+     * article links out of it.
      *
-     * يُرسَل من الخادم لا يُكرَّر في .env الواجهة: مصدر حقيقة واحد
-     * لعنوان المنصّة. وهو عنوان عام يراه أي زائر، بخلاف PLATFORM_TOKEN
-     * الذي لا يغادر الخادم إطلاقاً.
+     * It is sent from the server rather than repeated in the front end's .env:
+     * one single source of truth for the platform's address. And it is a public
+     * address that any visitor can see, unlike PLATFORM_TOKEN, which never
+     * leaves the server at all.
      */
     private function platformUrl(): ?string
     {
@@ -108,27 +117,28 @@ class AuthController extends Controller
     }
 
     /**
-     * تسجيل الخروج.
+     * Signing out.
      *
-     * يحذف التوكن المستعمل في هذا الطلب وحده — فتبقى جلسات المستخدم الأخرى
-     * على أجهزة أخرى تعمل.
+     * It deletes only the token used in this request — so the user's other
+     * sessions on other devices keep working.
      */
     public function logout(Request $request): JsonResponse
     {
-        // يُحذف صف التوكن المستخدم في هذا الطلب وحده، فلا تتأثر أجهزته الأخرى.
+        // Only the row of the token used in this request is deleted, so the user's other devices are untouched.
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'تم تسجيل الخروج.']);
     }
 
     /**
-     * ملف المستخدم كما تحتاجه الواجهة.
+     * The user profile in the shape the front end needs.
      *
-     * getAllPermissions() تجمع صلاحيات الأدوار + المنح المباشر معاً،
-     * فتستقبل الواجهة قائمة واحدة نهائية ولا تحسب شيئاً بنفسها.
+     * getAllPermissions() gathers the role permissions and the direct grants
+     * together, so the front end receives one final list and works nothing out
+     * for itself.
      *
-     * تنبيه: هذي القائمة لإخفاء الأزرار فقط. الفحص الحقيقي يقع على
-     * الخادم في كل مسار — إخفاء الزر ليس أماناً.
+     * A warning: this list is for hiding buttons, nothing more. The real check
+     * happens on the server on every route — hiding a button is not security.
      */
     private function profile(User $user): array
     {
@@ -138,7 +148,7 @@ class AuthController extends Controller
             'email' => $user->email,
             'is_active' => $user->is_active,
             'roles' => $user->getRoleNames(),
-            // الاسم العربي للدور — الواجهة تعرض المسمّى لا المعرّف البرمجي
+            // The Arabic name of the role — the front end shows the label, not the programmatic identifier
             'role_label' => $this->roleLabel($user),
             'permissions' => $user->getAllPermissions()->pluck('name')->values(),
         ];

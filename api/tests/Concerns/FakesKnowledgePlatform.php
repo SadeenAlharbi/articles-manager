@@ -9,25 +9,27 @@ use Laravel\Sanctum\Sanctum;
 use LogicException;
 
 /**
- * محاكاة منصّة المعرفة في الاختبارات.
+ * Faking the knowledge platform in tests.
  *
- * سبب وجود هذي السمة خطأ وقع ثلاث مرات في هذا المشروع:
+ * This trait exists because of a bug that was hit three times in this project:
  *
- * Http::fake **يُلحِق** المحاكاة ولا يستبدلها، و PendingRequest يبني معالجه
- * بـ ->map->__invoke(...)->filter()->first() — أي أن **أول** ردّ غير فارغ هو
- * الذي يفوز. فقاعدة '*' لو سُجِّلت قبل قاعدة مخصّصة ابتلعتها بلا خطأ ظاهر:
- * يعود ردّ لا علاقة له بالمسار، ويسقط الاختبار في موضع بعيد عن السبب.
+ * Http::fake **appends** stubs, it does not replace them, and PendingRequest
+ * builds its handler with ->map->__invoke(...)->filter()->first() — meaning the
+ * **first** non-empty response wins. So a '*' rule registered before a specific
+ * one swallows it with no visible error: a response unrelated to the URL comes
+ * back, and the test fails somewhere far away from the cause.
  *
- * fakePlatform تجعل ذلك مستحيلاً بنيوياً لا اتفاقياً: القواعد المخصّصة أولاً
- * دائماً، والشاملة أخيراً دائماً، ولا يملك الاختبار خيار عكسهما.
+ * fakePlatform makes that impossible structurally rather than by convention:
+ * the specific rules always come first, the catch-all always last, and the test
+ * has no way to reverse them.
  */
 trait FakesKnowledgePlatform
 {
     /**
-     * تسجّل محاكاة المنصّة بالترتيب الصحيح المضمون.
+     * Registers the platform stubs in the guaranteed correct order.
      *
-     * @param  array<string, mixed>  $routes  قواعد مخصّصة بأنماط عناوين
-     * @param  mixed  $fallback  القاعدة الشاملة لما لا ينطبق عليه شيء
+     * @param  array<string, mixed>  $routes  specific rules keyed by URL pattern
+     * @param  mixed  $fallback  the catch-all rule for anything else
      */
     protected function fakePlatform(array $routes, mixed $fallback): void
     {
@@ -37,26 +39,29 @@ trait FakesKnowledgePlatform
             );
         }
 
-        // اتحاد المصفوفات يحفظ ترتيب المفاتيح: المخصّص أولاً ثم '*'
+        // Array union preserves key order: the specific rules first, then '*'
         Http::fake($routes + ['*' => $fallback]);
     }
 
     /**
-     * تجعل كل طلب لاحق يفشل اتصالاً — تُستدعى داخل الاختبار لا في setUp.
+     * Makes every subsequent request fail to connect — call it inside the test,
+     * not in setUp.
      *
-     * وهي تعمل رغم أن Http::fake يُلحِق ولا يستبدل: buildStubHandler يستدعي
-     * **كل** المحاكيات (map متعجّلة) قبل أن يختار أولها غير فارغ، فالاستثناء
-     * يُرمى أثناء ذلك الاستدعاء لا بعد الاختيار.
+     * It works even though Http::fake appends rather than replaces:
+     * buildStubHandler invokes **every** stub (map is eager) before picking the
+     * first non-empty one, so the exception is thrown during that invocation,
+     * not after the selection.
      *
-     * الاعتماد على تفصيلة داخلية كهذي دقيق، فحُصر في موضع واحد موثّق بدل أن
-     * يتكرّر في الاختبارات بلا تفسير.
+     * Relying on an internal detail like this is delicate, so it is confined to
+     * a single documented place instead of being repeated across the tests with
+     * no explanation.
      */
     protected function fakePlatformUnreachable(): void
     {
         Http::fake(fn () => throw new ConnectionException('unreachable'));
     }
 
-    /** يدخل بحساب من بيانات البذرة، ويعيده. */
+    /** Signs in as one of the seeded accounts, and returns it. */
     protected function actingAsAccount(string $email): User
     {
         $user = User::where('email', $email)->firstOrFail();

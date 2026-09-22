@@ -11,20 +11,24 @@ use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 /**
- * حارس مواصفة OpenAPI.
+ * Guard over the OpenAPI specification.
  *
- * التوثيق المولَّد لا يحمي نفسه من التقادم: قد يتوقّف التوليد بخطأ صامت، أو
- * يُضاف مسار فلا يُوثَّق، أو يُنسى وصف فيظهر السطر فارغاً. وهذا وقع فعلاً في
- * المنصّة الأولى — توثيقها اليدوي تخلّف عن الكود أسبوعين حتى انتبهنا.
+ * Generated documentation does not protect itself from going stale: generation
+ * may stop with a silent error, a route may be added and never documented, or a
+ * summary may be forgotten and the line come out blank. This actually happened
+ * on the first platform — its hand-written documentation trailed the code by two
+ * weeks before anyone noticed.
  *
- * الاختبار يولّد المواصفة في الذاكرة (لا يقرأ api.json المصدَّر) فيلتقط
- * الانحراف لحظة وقوعه لا لحظة تشغيل أمر التصدير.
+ * The test generates the specification in memory (it does not read the exported
+ * api.json), so it catches the drift the moment it happens rather than the
+ * moment someone runs the export command.
  */
 class ApiDocumentationTest extends TestCase
 {
     /*
-     * تسع حالات من العشر تقرأ المواصفة من الذاكرة ولا تمسّ القاعدة، لكن حالة
-     * واحدة تُنشئ مستخدماً لتجرّب بوابة viewApiDocs — فتلزم الجداول.
+     * Nine of the ten cases read the specification from memory and never touch
+     * the database, but one creates a user in order to exercise the
+     * viewApiDocs gate — so the tables are required.
      */
     use RefreshDatabase;
 
@@ -36,7 +40,7 @@ class ApiDocumentationTest extends TestCase
             ->spec();
     }
 
-    /** أسماء مسارات api/v1 الفعلية في الموجّه، بصيغة المواصفة (/users/{user}). */
+    /** The api/v1 routes actually in the router, in spec form (/users/{user}). */
     private function registeredPaths(): array
     {
         $paths = [];
@@ -60,7 +64,7 @@ class ApiDocumentationTest extends TestCase
         return $paths;
     }
 
-    /* ---------------------------- التوليد نفسه ---------------------------- */
+    /* ------------------------- Generation itself ------------------------- */
 
     public function test_the_specification_generates(): void
     {
@@ -71,11 +75,13 @@ class ApiDocumentationTest extends TestCase
     }
 
     /**
-     * صفحة التوثيق تكشف بنية الواجهة كاملة — مساراتها وأجسام طلباتها ورموز
-     * أخطائها. ولهذا يحرسها RestrictedDocsAccess: مفتوحة في بيئة التطوير
-     * وحدها، ومغلقة بـ403 في غيرها ما لم تسمح بوابة viewApiDocs صراحةً.
+     * The documentation page exposes the whole shape of the API — its routes,
+     * its request bodies, its error codes. That is why RestrictedDocsAccess
+     * guards it: open in the development environment alone, and closed with a
+     * 403 everywhere else unless the viewApiDocs gate explicitly allows it.
      *
-     * بيئة الاختبار ليست local، فالرفض هنا هو السلوك الصحيح لا خللاً.
+     * The test environment is not local, so the refusal here is the correct
+     * behaviour rather than a fault.
      */
     public function test_the_documentation_page_is_not_public_outside_local(): void
     {
@@ -85,11 +91,14 @@ class ApiDocumentationTest extends TestCase
     }
 
     /**
-     * وتنفتح لمن تسمح له البوابة — فالحارس يمنع ولا يُعطّل.
+     * And it opens for whoever the gate allows — the guard restricts, it does
+     * not disable.
      *
-     * البوابة تُعرَّف بوسيط User لا بلا وسائط: Gate::allows تردّ الزائر تلقائياً
-     * ما لم يقبل أول وسيط قيمة null، وهذا مقصود. والشكل الواقعي في الإنتاج هو
-     * فتح التوثيق لمشرف مسجَّل لا للزوّار — فنسجّل مستخدماً كما سيحدث فعلاً.
+     * The gate is defined with a User argument rather than none: Gate::allows
+     * rejects a guest automatically unless the first argument accepts null, and
+     * that is deliberate. The realistic production shape is documentation open
+     * to a signed-in administrator, not to visitors — so we sign a user in, as
+     * would actually happen.
      */
     public function test_the_documentation_page_opens_for_an_allowed_viewer(): void
     {
@@ -100,7 +109,7 @@ class ApiDocumentationTest extends TestCase
             ->assertOk();
     }
 
-    /* ------------------------- لا مسار بلا توثيق ------------------------- */
+    /* ------------------- No route without documentation ------------------ */
 
     public function test_every_registered_route_is_documented(): void
     {
@@ -114,7 +123,7 @@ class ApiDocumentationTest extends TestCase
 
         sort($documented);
 
-        // المقارنة في الاتجاهين: لا مسار غير موثَّق، ولا مسار موثَّق لا وجود له.
+        // Both directions: no undocumented route, and no documented non-route.
         $this->assertSame(
             $this->registeredPaths(),
             $documented,
@@ -137,7 +146,7 @@ class ApiDocumentationTest extends TestCase
         $this->assertSame([], $blank, 'عمليات بلا وصف: '.implode('، ', $blank));
     }
 
-    /* ------------------------------- الأمان ------------------------------- */
+    /* ------------------------------ Security ----------------------------- */
 
     public function test_login_is_the_only_public_operation(): void
     {
@@ -145,7 +154,7 @@ class ApiDocumentationTest extends TestCase
 
         foreach ($this->spec()['paths'] as $path => $operations) {
             foreach ($operations as $method => $operation) {
-                // security: [] تعني «مفتوح صراحةً»؛ غيابها يعني وراثة الأمان العام.
+                // security: [] means "explicitly open"; absence inherits global security.
                 if (($operation['security'] ?? null) === []) {
                     $public[] = strtoupper($method)." {$path}";
                 }
@@ -166,7 +175,7 @@ class ApiDocumentationTest extends TestCase
         $this->assertSame('bearer', $scheme['scheme']);
     }
 
-    /* ------------------------- لا تسريب أسرار ------------------------- */
+    /* ------------------------- No leaked secrets ------------------------- */
 
     public function test_the_specification_ships_no_real_secret(): void
     {
@@ -185,14 +194,14 @@ class ApiDocumentationTest extends TestCase
         }
     }
 
-    /* -------------------- عقود لا يجوز أن تنكسر بصمت -------------------- */
+    /* --------------- Contracts that must not break silently -------------- */
 
     public function test_the_permissions_endpoint_documents_its_body(): void
     {
         $body = $this->spec()['paths']['/users/{user}/permissions']['put']['requestBody'];
         $schema = $body['content']['application/json']['schema'];
 
-        // العقد: المجموعة الفعّالة كاملة، لا قائمة إضافات.
+        // The contract: the complete effective set, not a list of additions.
         $this->assertSame('array', $schema['properties']['permissions']['type']);
         $this->assertContains('permissions', $schema['required']);
     }

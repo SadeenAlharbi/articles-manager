@@ -20,29 +20,33 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 /**
- * إدارة مستخدمي نظام الإدارة — الحسابات والأدوار والصلاحيات الفردية.
+ * Management of the admin system's users — accounts, roles and individual
+ * permissions.
  *
- * هؤلاء ليسوا مستخدمي منصّة المعرفة. هذي الشاشة لا تُدير حسابات المنصّة
- * العامة إطلاقاً، ولا يوجد أي مسار هنا يمسّها.
+ * These are not the knowledge platform's users. This screen never manages the
+ * platform's public accounts, and there is no route here that touches them.
  *
- * لا حذف — تعطيل فقط. البند صريح: لا تُحذف بيانات ولا سجلّات، والحذف
- * يكسر مفاتيح audit_logs ويُفقد الأثر.
+ * No deletion — deactivation only. The requirement is explicit: no data and no
+ * records are ever deleted, and a delete would break the audit_logs keys and
+ * lose the trail.
  *
- * طبقتا تفويض: الـmiddleware يحرس المسار (هل تملك الصلاحية أصلاً؟)،
- * و UserPolicy تحرس الهدف (هل تعلو على هذا الشخص بعينه؟).
+ * Two layers of authorization: the middleware guards the route (do you hold the
+ * permission at all?), and UserPolicy guards the target (do you outrank this
+ * particular person?).
  */
 #[Group('المستخدمون', 'حسابات نظام الإدارة وأدوارها وصلاحياتها الفردية.', weight: 2)]
 class UserController extends Controller
 {
     public function __construct(private readonly AuditLogger $audit) {}
 
-    /* ------------------------------ القراءة ------------------------------ */
+    /* ------------------------------ Reading ------------------------------ */
 
     /**
-     * قائمة مستخدمي نظام الإدارة.
+     * List of the admin system's users.
      *
-     * الصلاحية المطلوبة: `users.manage` (إدارة المستخدمين). الأعلى مستوى أولاً
-     * ثم الأحدث، والترتيب يقع في قاعدة البيانات فلا ينكسر مع الترقيم.
+     * Required permission: `users.manage` (manage users). Highest level first,
+     * then the most recent; the ordering happens in the database, so it does not
+     * break across pagination.
      */
     #[QueryParameter('search', 'بحث بالاسم أو البريد الإلكتروني', type: 'string')]
     #[QueryParameter('status', 'تصفية بالحالة: active أو inactive', type: 'string')]
@@ -63,8 +67,9 @@ class UserController extends Controller
                 $query->where('is_active', $request->string('status')->value() === 'active');
             })
             /*
-             * الأعلى مستوى أولاً ثم الأحدث. الترتيب يتم على مستوى قاعدة
-             * البيانات لا في PHP، فلا ينكسر مع الترقيم.
+             * Highest level first, then the most recent. The ordering is done at
+             * the database level rather than in PHP, so it does not break across
+             * pagination.
              */
             ->orderByDesc(
                 Role::query()
@@ -88,9 +93,9 @@ class UserController extends Controller
     }
 
     /**
-     * تفاصيل مستخدم واحد.
+     * Details of a single user.
      *
-     * الصلاحية المطلوبة: `users.manage` (إدارة المستخدمين).
+     * Required permission: `users.manage` (manage users).
      */
     public function show(Request $request, User $user): JsonResponse
     {
@@ -102,10 +107,12 @@ class UserController extends Controller
     }
 
     /**
-     * الأدوار والصلاحيات المتاحة، وما يحقّ للمستخدم الحالي منحه.
+     * The available roles and permissions, and which of them the current user is
+     * entitled to grant.
      *
-     * الحساب يتم في الخادم لا في الواجهة: لو تركنا React تقرّر أي دور
-     * تعرضه لصار منطق التفويض مكرَّراً في مكانين، وأي اختلاف بينهما ثغرة.
+     * The calculation happens on the server, not in the interface: if we let
+     * React decide which roles to show, the authorization logic would be
+     * duplicated in two places, and any divergence between them is a hole.
      */
     public function meta(Request $request): JsonResponse
     {
@@ -118,29 +125,31 @@ class UserController extends Controller
             'label' => RolesAndPermissionsSeeder::ROLES[$role->name]['label'] ?? $role->name,
             'level' => (int) $role->level,
             'assignable' => $actor->can('roles.manage') && (int) $role->level < $actor->roleLevel(),
-            // ما يمنحه الدور: الواجهة تقفل هذي الصناديق فوراً عند تبديل الدور
+            // What the role grants — the interface locks these boxes on a role switch
             'permissions' => $role->permissions->pluck('name')->values(),
         ]);
 
         $permissions = Permission::query()->orderBy('name')->get()->map(fn (Permission $permission) => [
             'name' => $permission->name,
             'label' => RolesAndPermissionsSeeder::PERMISSIONS[$permission->name] ?? $permission->name,
-            // لا تمنح ما لا تملك — الواجهة تُعطّل ما لا يحقّ له، والخادم يرفضه أيضاً.
+            // Grant nothing you lack — the UI disables it and the server refuses it too.
             'grantable' => $actor->can($permission->name),
         ]);
 
         return response()->json(['roles' => $roles, 'permissions' => $permissions]);
     }
 
-    /* ------------------------------ الإنشاء ------------------------------ */
+    /* ------------------------------ Creating ----------------------------- */
 
     /**
-     * إنشاء حساب في نظام الإدارة.
+     * Create an account in the admin system.
      *
-     * الصلاحية المطلوبة: `users.manage` (إدارة المستخدمين). ولا يمكن إنشاء حساب
-     * بدور في مستواك أو أعلى، ولا منحه صلاحية لا تملكها أنت.
+     * Required permission: `users.manage` (manage users). You cannot create an
+     * account with a role at your own level or above, nor grant it a permission
+     * you do not hold yourself.
      *
-     * هؤلاء مستخدمو نظام الإدارة — لا علاقة لهم بمستخدمي منصّة المعرفة العامّين.
+     * These are the admin system's users — they have nothing to do with the
+     * knowledge platform's public users.
      */
     public function store(StoreUserRequest $request): JsonResponse
     {
@@ -156,7 +165,7 @@ class UserController extends Controller
             $user = User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
-                'password' => $data['password'],   // الـcast يتولّى التعمية
+                'password' => $data['password'],   // the cast takes care of hashing
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
@@ -179,20 +188,20 @@ class UserController extends Controller
         );
     }
 
-    /* ------------------------------ التعديل ------------------------------ */
+    /* ------------------------------ Editing ------------------------------ */
 
     /**
-     * تعديل بيانات حساب.
+     * Update an account's details.
      *
-     * الصلاحية المطلوبة: `users.manage` (إدارة المستخدمين). كلمة المرور اختيارية —
-     * تركها فارغة يُبقي الحالية. ولا تُسجَّل قيمتها في سجلّ العمليات إطلاقاً،
-     * يُسجَّل أنها تغيّرت فقط.
+     * Required permission: `users.manage` (manage users). The password is
+     * optional — leaving it empty keeps the current one. Its value is never
+     * written to the audit log; only the fact that it changed is recorded.
      */
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
         $data = $request->validated();
 
-        // كلمة مرور فارغة تعني "لا تغيّرها" لا "اجعلها فارغة".
+        // An empty password means "do not change it", not "make it empty".
         if (blank($data['password'] ?? null)) {
             unset($data['password']);
         }
@@ -201,7 +210,7 @@ class UserController extends Controller
         $user->update($data);
 
         $this->audit->record($request, 'users.update', AuditLogger::SUBJECT_USER, (string) $user->id, [
-            // أسماء الحقول لا قيمها — والسجلّ لا يحفظ كلمة مرور أبداً.
+            // Field names, not their values — the log never stores a password.
             'fields' => array_values(array_diff($changed, ['password'])),
             'password_changed' => in_array('password', $changed, true),
         ]);
@@ -210,11 +219,12 @@ class UserController extends Controller
     }
 
     /**
-     * تفعيل حساب أو تعطيله.
+     * Activate or deactivate an account.
      *
-     * الصلاحية المطلوبة: `users.manage` (إدارة المستخدمين)، مع الهرمية: لا يمكن
-     * تعطيل مَن هو في مستواك أو أعلى، ولا تعطيل نفسك. **لا تُحذف أي بيانات** —
-     * تُلغى جلسات الحساب المفتوحة فوراً ويمكن إعادة تفعيله في أي وقت.
+     * Required permission: `users.manage` (manage users), together with the
+     * hierarchy: you cannot deactivate someone at your own level or above, nor
+     * deactivate yourself. **No data is ever deleted** — the account's open
+     * sessions are revoked immediately and it can be reactivated at any time.
      */
     public function toggleActive(Request $request, User $user): JsonResponse
     {
@@ -223,9 +233,10 @@ class UserController extends Controller
         $user->update(['is_active' => ! $user->is_active]);
 
         /*
-         * التعطيل يُبطل توكنات الحساب فوراً: لولاه لبقي مفتاح صالح بيد
-         * حساب موقوف حتى ينتهي بنفسه. الـmiddleware يسدّ الباب على كل
-         * طلب، وهذا يسحب المفاتيح من الأساس.
+         * Deactivation invalidates the account's tokens at once: without it a
+         * valid key would stay in the hands of a suspended account until it
+         * expired of its own accord. The middleware bars the door on every
+         * request; this takes the keys away in the first place.
          */
         if (! $user->is_active) {
             $user->tokens()->delete();
@@ -242,13 +253,14 @@ class UserController extends Controller
         return response()->json(['data' => (new UserResource($this->freshUser($user)))->resolve($request)]);
     }
 
-    /* ------------------------- الأدوار والصلاحيات ------------------------ */
+    /* ----------------------- Roles and permissions ----------------------- */
 
     /**
-     * تغيير دور مستخدم.
+     * Change a user's role.
      *
-     * الصلاحية المطلوبة: `roles.manage` (إدارة الأدوار والصلاحيات). لا يمكن إسناد
-     * دور في مستواك أو أعلى — منعاً لتصعيد الامتيازات.
+     * Required permission: `roles.manage` (manage roles and permissions). A role
+     * at your own level or above cannot be assigned — this is what prevents
+     * privilege escalation.
      */
     public function updateRole(Request $request, User $user): JsonResponse
     {
@@ -265,9 +277,11 @@ class UserController extends Controller
         $user->syncRoles([$role->name]);
 
         /*
-         * الحجب استثناءٌ من دور بعينه. عند تبديل الدور تُسقط الاستثناءات
-         * التي لم يعد الدور الجديد يمنحها أصلاً، وإلا بقيت قنابل صامتة:
-         * صلاحية تُمنح لاحقاً فلا تعمل، بلا سبب ظاهر في الشاشة.
+         * A denial is an exception carved out of one particular role. When the
+         * role is switched we drop the exceptions the new role no longer grants
+         * in the first place; otherwise they linger as silent bombs: a permission
+         * granted later that simply does not work, with no visible reason on the
+         * screen.
          */
         $user->deniedPermissions()->detach(
             $user->deniedPermissions
@@ -276,7 +290,7 @@ class UserController extends Controller
         );
 
         $this->audit->record($request, 'users.role', AuditLogger::SUBJECT_USER, (string) $user->id, [
-            // الاسم لحظة العملية: لو أُعيدت تسميته لاحقاً بقي السجلّ مفهوماً
+            // The name at the time of the action: a later rename leaves the log readable
             'name' => $user->name,
             'from' => $previous,
             'to' => $role->name,
@@ -286,16 +300,18 @@ class UserController extends Controller
     }
 
     /**
-     * ضبط صلاحيات مستخدم.
+     * Set a user's permissions.
      *
-     * permissions هنا هي «المجموعة الفعّالة» المطلوبة — ما ينبغي أن يملكه
-     * بعد الحفظ — لا قائمة الإضافات. والخادم يشتق منها الطرفين:
+     * `permissions` here is the desired "effective set" — what the user ought to
+     * hold once the save is done — not a list of additions. The server derives
+     * both sides from it:
      *
-     *   المنح  = المطلوب  −  ما يمنحه الدور   (صلاحية زائدة فوق الدور)
-     *   الحجب  = ما يمنحه الدور  −  المطلوب   (استثناء من الدور)
+     *   granted = desired − what the role grants  (an extra on top of the role)
+     *   denied  = what the role grants − desired  (an exception to the role)
      *
-     * قائمة واحدة لا قائمتين: الواجهة صناديق اختيار، وحالة الصندوق هي
-     * الحقيقة كاملةً. ولو أرسلنا قائمتين لأمكن أن تتناقضا.
+     * One list, not two: the interface is a set of checkboxes, and a box's state
+     * is the whole truth. Had we sent two lists, they could contradict each
+     * other.
      */
     public function updatePermissions(Request $request, User $user): JsonResponse
     {
@@ -313,7 +329,7 @@ class UserController extends Controller
         $granted = array_values(array_diff($desired, $fromRole));
         $denied = array_values(array_diff($fromRole, $desired));
 
-        // الفحص على ما يُمنح فقط: الحجب تقييد لا تصعيد، فلا يُشترط امتلاكه
+        // Checked on grants only: a denial restricts rather than escalates, so it need not be held
         $this->authorize('grantPermissions', [$user, $granted]);
 
         $previousGrants = $user->permissions->pluck('name')->sort()->values()->all();
@@ -344,7 +360,7 @@ class UserController extends Controller
     /* ------------------------------------------------------------------- */
 
     /**
-     * أسماء الصلاحيات التي يمنحها دور المستخدم.
+     * The names of the permissions granted by the user's role.
      *
      * @return array<int, string>
      */
@@ -354,14 +370,15 @@ class UserController extends Controller
             ->roles->flatMap->permissions->pluck('name')->unique()->values()->all();
     }
 
-    /** إعادة تحميل كاملة بعد أي تغيير — بما فيها المحجوب. */
+    /** A full reload after any change — including the denied permissions. */
     private function freshUser(User $user): User
     {
         return $user->fresh(['roles.permissions', 'permissions', 'deniedPermissions']);
     }
 
     /**
-     * يرفض منح صلاحية لا يملكها المانح — القاعدة الثالثة في UserPolicy.
+     * Refuses to grant a permission the granter does not hold — the third rule
+     * in UserPolicy.
      *
      * @param  array<int, string>  $permissions
      * @return array<int, string>

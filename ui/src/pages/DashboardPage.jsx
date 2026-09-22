@@ -2,21 +2,27 @@ import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useAuth } from '../auth/AuthContext'
 import { Alert, EmptyState, Spinner } from '../components/ui'
-import { IconArticles, IconExternal } from '../components/icons'
+import { IconArticles, IconCheck, IconClock, IconExternal, IconPencil } from '../components/icons'
 import { actionLabel, statusTone } from '../lib/labels'
 
 /*
- * لوحة المعلومات.
+ * The dashboard.
  *
- * كل رقم هنا استعلام حقيقي — من منصّة المعرفة عبر واجهتها، ومن سجلّ العمليات
- * في قاعدتنا. ولا يوجد رقم ثابت ولا بيانات وهمية: إن غاب المصدر تظهر حالة
- * فراغ صريحة بدل صفرٍ يوهم بأن لا شيء هناك.
+ * Every number here is a real query — from the knowledge platform through its
+ * API, and from the audit log in our own database. There is not one fixed
+ * figure and no mock data anywhere: when a source is missing, an explicit
+ * empty state appears instead of a zero that would suggest there is nothing
+ * there.
  *
- * لا رسوم «عبر الزمن» — بند صريح في المواصفة.
+ * No "over time" charts — an explicit clause in the specification.
+ *
+ * The form is taken from the main platform's own admin dashboard: a welcome
+ * card with a faint green gradient, then a row of indicators whose icons sit
+ * in a pale green square, then white panels with a hairline border.
  */
 
-export default function DashboardPage() {
-  const { platformUrl } = useAuth()
+export default function DashboardPage({ onNavigate }) {
+  const { user, platformUrl, can } = useAuth()
 
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -41,23 +47,73 @@ export default function DashboardPage() {
   if (error) return <Alert tone="error">{error}</Alert>
   if (!data) return null
 
-  const { counts } = data
-  const latest = data.latest_articles ?? []
-  const viewed = data.most_viewed ?? []
+  const { counts, latest_articles: latest, most_viewed: viewed } = data
   const categories = data.top_categories ?? []
   const operations = data.latest_operations ?? []
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="إجمالي المقالات" value={counts.all} tone="brand" />
-        <Stat label="منشورة" value={counts.published} />
-        <Stat label="مسودات" value={counts.draft} />
-        <Stat label="مجدولة" value={counts.scheduled} />
+      {/* ------------------------------ Welcome ------------------------------ */}
+
+      <section
+        className="relative overflow-hidden rounded-2xl border border-ink-100"
+        style={{
+          background:
+            'radial-gradient(circle at 88% 20%,rgba(11,127,91,0.08),transparent 42%),' +
+            'linear-gradient(135deg,#f6faf8 0%,#f2f7f4 100%)',
+        }}
+      >
+        <div className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
+          <div className="min-w-0">
+            <p className="mb-1 text-xs font-semibold text-brand-700">لوحة إدارة المقالات</p>
+            <h2 className="truncate text-xl font-bold text-ink-900 sm:text-2xl">
+              حياك الله، {firstName(user.name)}
+            </h2>
+            <p className="mt-1 text-sm text-ink-500">
+              هذه نظرة عامة على محتوى المنصّة وآخر ما جرى عليه.
+            </p>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            {can('articles.view') && (
+              <button
+                type="button"
+                onClick={() => onNavigate?.('articles')}
+                className="inline-flex items-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm
+                  font-semibold text-white transition-colors hover:bg-brand-700"
+              >
+                إدارة المقالات
+              </button>
+            )}
+
+            {can('audit.view') && (
+              <button
+                type="button"
+                onClick={() => onNavigate?.('audit')}
+                className="inline-flex items-center rounded-xl border border-ink-200 bg-white px-4
+                  py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:border-brand-300
+                  hover:text-brand-700"
+              >
+                سجلّ العمليات
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------ Numbers ------------------------------ */}
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Stat label="إجمالي المقالات" value={counts.all} icon={IconArticles} highlight />
+        <Stat label="منشورة" value={counts.published} icon={IconCheck} />
+        <Stat label="مسودات" value={counts.draft} icon={IconPencil} />
+        <Stat label="مجدولة" value={counts.scheduled} icon={IconClock} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Panel title="آخر المقالات">
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* ------------------------- Latest articles -------------------------- */}
+
+        <Panel title="آخر المقالات" hint="أحدث ما أُضيف إلى المنصّة">
           {latest.length === 0 ? (
             <EmptyState title="لا مقالات بعد" description="أنشئ أول مقال من صفحة المقالات." />
           ) : (
@@ -85,7 +141,9 @@ export default function DashboardPage() {
           )}
         </Panel>
 
-        <Panel title="الأكثر قراءة">
+        {/* ---------------------------- Most read ----------------------------- */}
+
+        <Panel title="الأكثر قراءة" hint="بحسب عدد المشاهدات المسجّلة في المنصّة">
           {viewed.length === 0 ? (
             <EmptyState title="لا مشاهدات بعد" description="ستظهر هنا المقالات الأكثر قراءة." />
           ) : (
@@ -114,7 +172,9 @@ export default function DashboardPage() {
           )}
         </Panel>
 
-        <Panel title="أكثر التصنيفات نشراً">
+        {/* --------------------- Top publishing categories --------------------- */}
+
+        <Panel title="أكثر التصنيفات نشراً" hint="التصنيفات التي نُشر فيها مقال على الأقل">
           {categories.length === 0 ? (
             <EmptyState
               title="لا تصنيفات بمقالات"
@@ -134,7 +194,9 @@ export default function DashboardPage() {
           )}
         </Panel>
 
-        <Panel title="آخر العمليات">
+        {/* ------------------------ Latest operations ------------------------- */}
+
+        <Panel title="آخر العمليات" hint="من سجلّ التدقيق في قاعدة اللوحة">
           {operations.length === 0 ? (
             <EmptyState
               title="لا عمليات مسجّلة بعد"
@@ -175,44 +237,60 @@ export default function DashboardPage() {
 /* -------------------------------------------------------------------------- */
 
 /**
- * بطاقة رقم.
+ * An indicator card — the very structure of the indicator cards on the main
+ * platform's admin dashboard: an icon in a pale green square, then the number
+ * in prominence, then its description.
  *
- * null تعني «تعذّر جلب الرقم» لا صفراً: الصفر يقول «لا مقالات»، والغياب يقول
- * «لا نعرف». عرضهما متطابقَين يكذب على القارئ.
+ * And null here means "the number could not be fetched", not zero: a zero says
+ * "no articles", an absence says "we do not know". Rendering the two the same
+ * way lies to the reader.
  */
-function Stat({ label, value, tone }) {
+function Stat({ label, value, icon: Icon, highlight = false }) {
   return (
     <div
-      className={`rounded-2xl border p-4 ${
-        tone === 'brand' ? 'border-brand-100 bg-brand-50' : 'border-ink-200 bg-white shadow-card'
+      className={`rounded-2xl border bg-white p-4 transition-colors sm:p-5 ${
+        highlight ? 'border-brand-200' : 'border-ink-100'
       }`}
     >
-      <p className="flex items-center gap-1.5 text-xs font-semibold text-ink-500">
-        <IconArticles width={14} height={14} />
-        {label}
-      </p>
+      <span
+        className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-50
+          text-brand-600 ring-1 ring-brand-100"
+      >
+        <Icon width={18} height={18} />
+      </span>
 
       <p
-        className={`mt-1.5 text-2xl font-bold tabular-nums ${
-          value === null ? 'text-ink-300' : tone === 'brand' ? 'text-brand-700' : 'text-ink-900'
+        className={`text-2xl font-extrabold tabular-nums sm:text-3xl ${
+          value === null ? 'text-ink-300' : 'text-ink-900'
         }`}
       >
         {value === null ? '—' : value}
       </p>
+
+      <p className="mt-1 text-xs text-ink-500 sm:text-sm">{label}</p>
     </div>
   )
 }
 
-function Panel({ title, children }) {
+function Panel({ title, hint, children }) {
   return (
-    <section className="rounded-2xl border border-ink-200 bg-white p-4 shadow-card">
-      <h3 className="mb-1 text-sm font-bold text-ink-900">{title}</h3>
+    <section className="rounded-2xl border border-ink-100 bg-white p-5">
+      <div className="mb-3">
+        <h3 className="font-bold text-ink-900">{title}</h3>
+        {hint && <p className="mt-0.5 text-xs text-ink-400">{hint}</p>}
+      </div>
+
       {children}
     </section>
   )
 }
 
-/** التاريخ بصيغة منصّة المعرفة: ميلادي بأرقام لاتينية. */
+/** The first name on its own — greeting someone by their given name is warmer than the full four-part name. */
+function firstName(name) {
+  return (name ?? '').trim().split(/\s+/)[0] || 'بك'
+}
+
+/** Dates in the knowledge platform's format: Gregorian, in Latin numerals. */
 function formatDate(value) {
   if (!value) return 'غير منشور'
 

@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * سجلّ التدقيق: من فعل ماذا، على أي مقال، ومتى.
+ * The audit log: who did what, to which article, and when.
  *
- * الصفوف هنا تُكتب ولا تُعدَّل ولا تُحذف — لهذا يوجد created_at فقط
- * بلا updated_at: سجلّ يمكن تعديله ليس سجلّ تدقيق.
+ * Rows here are written, never updated and never deleted — which is why there
+ * is only created_at and no updated_at: a log you can edit is not an audit log.
  */
 return new class extends Migration
 {

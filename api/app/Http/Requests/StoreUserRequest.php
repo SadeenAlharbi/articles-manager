@@ -8,10 +8,11 @@ use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
 /**
- * إنشاء مستخدم في نظام الإدارة.
+ * Creating a user in the management system.
  *
- * التفويض هنا يفحص الصلاحية العامة فقط؛ قواعد التدرّج (لا تصنع من هو
- * أقوى منك) تُفحص في المتحكّم لأنها تحتاج مستوى الدور المطلوب.
+ * The authorization here checks the general permission only; the hierarchy
+ * rules (never make someone stronger than yourself) are checked in the
+ * controller, because they need the level of the requested role.
  */
 class StoreUserRequest extends FormRequest
 {
