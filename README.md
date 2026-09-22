@@ -143,42 +143,54 @@ Route::delete('/articles/{slug}', [ArticleController::class, 'destroy'])
 
 ---
 
-## ٦. التشغيل من الصفر
+## ٦. Running From Scratch
+
+The whole stack (PostgreSQL, the Laravel API, and the React UI) runs through Docker Compose — no
+local PHP, Composer, or Node installation is required.
 
 ```bash
-# 1. قاعدة البيانات
 cd articles-manager
-echo 'DB_PASSWORD=كلمة_سر_قوية' > .env
-docker compose up -d
+cp .env.example .env
+# set DB_PASSWORD in .env
 
-# 2. الخادم
 cd api
-composer install
-cp .env.example .env && php artisan key:generate
-# اضبطي DB_* و PLATFORM_BASE_URL و PLATFORM_TOKEN في .env
-php artisan migrate
-php artisan db:seed
-php artisan serve --port=8001
+cp .env.example .env
+# set DB_* to match docker-compose.yml, and PLATFORM_BASE_URL / PLATFORM_TOKEN
 
-# 3. الواجهة
-cd ../ui
-npm install
-echo 'VITE_API_URL=http://localhost:8001/api/v1' > .env
-npm run dev
-
-# 4. منصّة المعرفة يجب أن تعمل على المنفذ 8000
+cd ..
+docker compose up -d --build
 ```
 
-### حساب الخدمة
+This starts PostgreSQL, builds and starts the API container (running `composer install`, then
+`php artisan migrate`, then serving on port 8001), and starts the UI container (`npm install`
+followed by the Vite dev server on port 5173).
 
-يُصدَر من منصّة المعرفة لحساب مشرف:
+Seed roles, permissions, and demo accounts:
+
+```bash
+docker compose exec api php artisan db:seed
+```
+
+The knowledge platform (mywebsite) must be running on port 8000 for article operations to succeed.
+
+### Service Account Token
+
+Issued from the knowledge platform for an admin account:
 
 ```bash
 php artisan tinker --execute="echo App\Models\User::where('email','...')->first()->createToken('articles-manager')->plainTextToken;"
 ```
 
-ويوضع في `api/.env` تحت `PLATFORM_TOKEN`.
-**لا يُكتب في الكود، ولا يُرفع على Git، ولا يصل المتصفّح.**
+Set it in `api/.env` under `PLATFORM_TOKEN`.
+**Never write it into the code, commit it to Git, or expose it to the browser.**
+
+### Restoring an Existing Database
+
+To load real content instead of an empty database:
+
+```bash
+docker exec -i <postgres-container-name> psql -U articles_app -d articles_manager < articles_manager.sql
+```
 
 ---
 

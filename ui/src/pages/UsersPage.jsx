@@ -16,13 +16,15 @@ import {
 } from '../components/ui'
 
 /*
- * صفحة المستخدمين: الحسابات والأدوار والصلاحيات الفردية في مكان واحد.
+ * The users page: accounts, roles, and individual permissions in one place.
  *
- * هؤلاء مستخدمو نظام الإدارة — لا علاقة لهم بمستخدمي منصّة المعرفة.
+ * These are the admin system's users — they have nothing to do with the
+ * knowledge platform's users.
  *
- * كل زر هنا يظهر أو يختفي حسب ما يُرسله الخادم في حقل can لكل صف،
- * لا حسب حساب تجريه الواجهة بنفسها. ولو أخفينا زراً بالخطأ فالخادم
- * يرفض العملية على أي حال — الإخفاء تحسين للتجربة لا إجراء أمني.
+ * Every button here shows or hides based on what the server sends in the
+ * can field for each row, not on a calculation the interface does itself.
+ * Even if a button were hidden by mistake, the server refuses the action
+ * anyway — hiding it is a UX improvement, not a security measure.
  */
 
 const EMPTY_CREATE = { name: '', email: '', password: '', role: '', permissions: [] }
@@ -37,7 +39,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true)
   const [notice, setNotice] = useState(null)
 
-  // النوافذ: واحدة مفتوحة في كل مرة
+  // Modals: only one open at a time
   const [createOpen, setCreateOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [access, setAccess] = useState(null)
@@ -47,7 +49,7 @@ export default function UsersPage() {
   const [form, setForm] = useState(EMPTY_CREATE)
   const [errors, setErrors] = useState({})
 
-  /* ------------------------------ التحميل ------------------------------ */
+  /* ------------------------------ Loading ------------------------------ */
 
   const load = useCallback(async (term, statusFilter) => {
     setLoading(true)
@@ -67,7 +69,7 @@ export default function UsersPage() {
       .catch(() => setMeta({ roles: [], permissions: [] }))
   }, [])
 
-  // بحث مؤجّل: لا نرسل طلباً مع كل حرف
+  // Debounced search: we don't send a request on every keystroke
   useEffect(() => {
     const timer = setTimeout(() => load(search, status), 350)
     return () => clearTimeout(timer)
@@ -76,12 +78,13 @@ export default function UsersPage() {
   const assignableRoles = meta.roles.filter((role) => role.assignable)
 
   /*
-   * صلاحيات الدور المختار حالياً في النافذة. تُشتق من meta لا من الصف
-   * المحمَّل، فتتحدّث فوراً عند تبديل الدور قبل الحفظ.
+   * The permissions of the role currently selected in the modal. Derived
+   * from meta, not from the loaded row, so it updates immediately when the
+   * role is switched, before saving.
    */
   const rolePermissions = permissionsOfRole(meta, access?.role)
 
-  /* ------------------------------ الإنشاء ------------------------------ */
+  /* ------------------------------ Creating ------------------------------ */
 
   function openCreate() {
     setForm({ ...EMPTY_CREATE, role: assignableRoles[0]?.name ?? '' })
@@ -107,7 +110,7 @@ export default function UsersPage() {
     }
   }
 
-  /* ------------------------------ التعديل ------------------------------ */
+  /* ------------------------------ Editing ------------------------------ */
 
   function openEdit(row) {
     setEditing({ ...row, password: '' })
@@ -135,12 +138,13 @@ export default function UsersPage() {
     }
   }
 
-  /* -------------------------- الدور والصلاحيات ------------------------- */
+  /* -------------------------- Role and permissions ------------------------- */
 
   /*
-   * الحالة هنا هي «المجموعة الفعّالة»: ما ينبغي أن يملكه المستخدم بعد
-   * الحفظ. الصندوق المؤشَّر يعني «يملكها» أياً كان مصدرها، والخالي يعني
-   * «لا يملكها» ولو منحها دوره. الخادم يشتق من هذي القائمة المنحَ والحجب.
+   * The state here is the "effective set": what the user should hold once
+   * saving is done. A checked box means "holds it" regardless of source,
+   * and an empty one means "doesn't hold it" even if their role grants it.
+   * The server derives the grants and denials from this list.
    */
   function openAccess(row) {
     setAccess({
@@ -162,9 +166,10 @@ export default function UsersPage() {
   }
 
   /*
-   * تبديل الدور يستبدل صلاحيات الدور القديم بصلاحيات الجديد، ويُبقي المنح
-   * الفردي الذي لا يأتي من أي دور — فلا يضيع ما مُنح يدوياً بمجرد تغيير
-   * الدور، ولا تبقى صلاحيات دور لم يعد له.
+   * Switching roles replaces the old role's permissions with the new
+   * one's, and keeps any individual grant that doesn't come from a role —
+   * so a manual grant isn't lost just by changing roles, and no permission
+   * from a role the user no longer holds lingers behind.
    */
   function changeRole(name) {
     setAccess((current) => {
@@ -182,7 +187,7 @@ export default function UsersPage() {
     setErrors({})
 
     try {
-      // مساران منفصلان لأن كلاً منهما يحرسه فحص مختلف على الخادم
+      // Two separate calls because each is guarded by a different check on the server
       await api(`/users/${access.id}/role`, { method: 'PUT', body: { role: access.role } })
       await api(`/users/${access.id}/permissions`, { method: 'PUT', body: { permissions: access.permissions } })
 
@@ -197,7 +202,7 @@ export default function UsersPage() {
     }
   }
 
-  /* ------------------------------ التعطيل ------------------------------ */
+  /* ------------------------------ Deactivation ------------------------------ */
 
   async function confirmToggle() {
     setBusy(true)
@@ -220,13 +225,14 @@ export default function UsersPage() {
     }
   }
 
-  /* ------------------------------- العرض ------------------------------- */
+  /* ------------------------------- Display ------------------------------- */
 
   return (
     <div>
       {/*
-        لا عنوان هنا: Layout يعرض «المستخدمون» ووصفها في صدر الصفحة أصلاً،
-        وتكراره يضاعف نفس السطر مرتين على الشاشة.
+        No heading here: Layout already shows "Users" and its description
+        at the top of the page, and repeating it would double the same
+        line on screen.
       */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-2">
@@ -304,7 +310,7 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <span className="text-xs text-ink-500">{row.permissions.length} صلاحية</span>
 
-                    {/* استثناءات هذا الحساب عن دوره: ما زاد وما نقص */}
+                    {/* This account's exceptions to its role: what was added and what was removed */}
                     {(row.extra_permissions?.length ?? 0) > 0 && (
                       <span className="mr-1.5 text-xs font-semibold text-amber-700">
                         +{row.extra_permissions.length} منحة
@@ -354,7 +360,7 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* ------------------------------ إنشاء ------------------------------ */}
+      {/* ------------------------------ Create ------------------------------ */}
 
       <Modal
         open={createOpen}
@@ -418,7 +424,7 @@ export default function UsersPage() {
         </form>
       </Modal>
 
-      {/* ------------------------------ تعديل ------------------------------ */}
+      {/* ------------------------------ Edit ------------------------------ */}
 
       <Modal
         open={Boolean(editing)}
@@ -467,7 +473,7 @@ export default function UsersPage() {
         )}
       </Modal>
 
-      {/* ------------------------- الدور والصلاحيات ------------------------ */}
+      {/* ------------------------- Role and permissions ------------------------ */}
 
       <Modal
         open={Boolean(access)}
@@ -510,9 +516,11 @@ export default function UsersPage() {
                   const fromRole = rolePermissions.includes(permission.name)
 
                   /*
-                    الإزالة متاحة دائماً — رفعُ صلاحية تقييد لا تصعيد. أما
-                    الإضافة فمحكومة بـgrantable: لا تمنح ما لا تملك. ولهذا
-                    القفل مشروط بأن يكون الصندوق خالياً أصلاً.
+                    Removal is always available — lifting a permission is a
+                    restriction, not an escalation. Adding one, though, is
+                    governed by grantable: you can't grant what you don't
+                    hold. So the lock only applies when the box is already
+                    empty.
                   */
                   const cannotGrant = !permission.grantable && !held
 
@@ -566,7 +574,7 @@ export default function UsersPage() {
         )}
       </Modal>
 
-      {/* ----------------------------- التأكيد ----------------------------- */}
+      {/* ----------------------------- Confirmation ----------------------------- */}
 
       <ConfirmDialog
         open={Boolean(confirming)}
@@ -588,12 +596,12 @@ export default function UsersPage() {
 
 /* -------------------------------------------------------------------------- */
 
-/** أسماء الصلاحيات التي يمنحها دور بعينه، حسب ما أرسله الخادم في meta. */
+/** The permission names granted by a given role, as sent by the server in meta. */
 function permissionsOfRole(meta, roleName) {
   return meta.roles.find((role) => role.name === roleName)?.permissions ?? []
 }
 
-/** أخطاء التحقّق من الخادم ← كائن مسطّح: اسم الحقل ← أول رسالة. */
+/** Server validation errors -> a flat object: field name -> first message. */
 function flatten(err) {
   const fields = err.data?.errors ?? {}
 
@@ -602,7 +610,7 @@ function flatten(err) {
   )
 }
 
-/** رسالة مفهومة حسب رمز الحالة، بدل النصّ الخام. */
+/** A readable message based on the status code, instead of the raw text. */
 function describe(err) {
   if (err.status === 403) return 'رُفضت العملية: لا تملك الصلاحية المطلوبة أو أن الحساب في مستواك أو أعلى (403).'
   if (err.status === 422) return err.message

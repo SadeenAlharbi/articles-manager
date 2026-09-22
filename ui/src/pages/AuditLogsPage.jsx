@@ -4,23 +4,25 @@ import { Alert, Badge, EmptyState, SelectControl, Spinner } from '../components/
 import { actionLabel } from '../lib/labels'
 
 /*
- * سجلّ العمليات.
+ * The audit log.
  *
- * يعرض ما وقع فعلاً — لا بيانات وهمية لملء الجدول. إن لم توجد عمليات
- * بعد، تظهر حالة فراغ صريحة.
+ * Shows what actually happened — no fake data to fill the table. If no
+ * operations exist yet, an explicit empty state is shown.
  *
- * لكل صف تفاصيل مطويّة تشرح ما تغيّر بالضبط. التفاصيل مخزَّنة في عمود
- * payload من نوع JSONB، وتُترجم هنا إلى عربية مفهومة: لا تظهر أسماء
- * الصلاحيات التقنية (articles.create) في أي موضع من الواجهة.
+ * Each row has collapsible details explaining exactly what changed. The
+ * details are stored in a JSONB payload column, and are translated here
+ * into readable Arabic: no technical permission name (articles.create)
+ * ever appears anywhere in the interface.
  */
 
 const SUBJECTS = { article: 'مقال', user: 'مستخدم' }
 
 /**
- * أسماء حقول النماذج كما يراها المستخدم.
+ * Form field names as the user sees them.
  *
- * أي حقل غير مذكور هنا يظهر بمعرّفه التقني — وهذا ما جعل «tags» تظهر
- * إنجليزية في السجلّ. تُضاف الحقول هنا كلّما اتّسع نموذج المقال.
+ * Any field not listed here shows up under its technical identifier —
+ * this is what made "tags" show up in English in the log. Add fields
+ * here whenever the article form grows.
  */
 const FIELDS = {
   name: 'الاسم',
@@ -43,9 +45,10 @@ export default function AuditLogsPage() {
   const [error, setError] = useState('')
 
   /*
-   * الفلترة تقع في الخادم لا في الواجهة: السجلّ مُرقَّم بعشرين صفاً، وتصفية
-   * الصفحة المعروضة وحدها تُخفي عمليات الشخص الواقعة في الصفحات الأخرى —
-   * أي تعطي إجابة ناقصة تبدو كاملة.
+   * Filtering happens on the server, not in the interface: the log is
+   * paginated twenty rows at a time, and filtering only the displayed
+   * page would hide that person's operations on the other pages —
+   * giving an incomplete answer that looks complete.
    */
   useEffect(() => {
     setLoading(true)
@@ -169,7 +172,7 @@ export default function AuditLogsPage() {
                         </span>
                       )}
 
-                      {/* المعرّف المختصر مرجعٌ ثانوي، ولا يُعرض إن كان هو الاسم */}
+                      {/* The short identifier is a secondary reference, and isn't shown when it's the same as the name */}
                       {log.subject_type === 'article'
                         && log.payload?.title
                         && log.subject_id && (
@@ -233,11 +236,12 @@ export default function AuditLogsPage() {
 /* -------------------------------------------------------------------------- */
 
 /**
- * اسم العنصر المتأثّر كما كان لحظة العملية.
+ * The affected item's name as it was at the moment of the operation.
  *
- * للمستخدمين نعرض الاسم المحفوظ في الحمولة لا رقم المعرّف: الرقم لا يعني
- * شيئاً لقارئ السجلّ، والاسم المحفوظ يبقى صحيحاً حتى لو أُعيدت تسمية
- * الحساب بعد ذلك — وهذا ما يجب أن يفعله سجلّ تدقيق.
+ * For users we show the name saved in the payload, not the id: the id
+ * means nothing to someone reading the log, and the saved name stays
+ * correct even if the account is renamed afterward — which is exactly
+ * what an audit log should do.
  */
 function subjectName(log) {
   if (log.subject_type === 'user') return log.payload?.name ?? log.subject_id
@@ -246,10 +250,11 @@ function subjectName(log) {
 }
 
 /**
- * ترجمة حمولة العملية إلى أسطر «مصطلح ← قيمة».
+ * Translates the operation's payload into "term -> value" rows.
  *
- * كل صلاحية تُعرض بمسمّاها العربي القادم من الخادم، فلا يظهر معرّف تقني
- * مثل articles.create في الواجهة إطلاقاً.
+ * Every permission is shown under its Arabic label as sent by the
+ * server, so no technical identifier like articles.create ever appears
+ * in the interface.
  *
  * @returns {Array<[string, string]>}
  */
@@ -265,9 +270,11 @@ function describe(log, labels) {
   switch (log.action) {
     case 'users.permissions': {
       /*
-        نذكر ما أُضيف وما أُزيل صراحةً بدل «قبل ← بعد». في واجهة عربية
-        يقرأها المستخدم من اليمين، السهم يقلب المعنى في ذهن القارئ: يبدو
-        أن «لا شيء» هي النتيجة. والصياغة الصريحة لا تحتمل اللبس أصلاً.
+        We state what was added and what was removed explicitly, instead
+        of "before -> after". In an Arabic, right-to-left interface, the
+        arrow flips the meaning in the reader's mind: "nothing" can look
+        like the result. The explicit phrasing leaves no room for
+        ambiguity in the first place.
       */
       const addedGrants = missingFrom(payload.granted_to, payload.granted_from)
       const removedGrants = missingFrom(payload.granted_from, payload.granted_to)
@@ -300,14 +307,14 @@ function describe(log, labels) {
 
     case 'users.update': {
       const changed = (payload.fields ?? []).map((f) => FIELDS[f] ?? f)
-      // كلمة المرور يُذكر أنها تغيّرت ولا تُخزَّن قيمتها أبداً
+      // The password is noted as changed, and its value is never stored
       if (payload.password_changed) changed.push('كلمة المرور')
       rows.push(['الحقول المعدَّلة', changed.length ? changed.join('، ') : 'لا شيء'])
       break
     }
 
     case 'articles.update':
-      // القائمة تحمل ما اختلفت قيمته فعلاً — يحسبها الخادم بمقارنة قبل/بعد
+      // The list carries only what actually changed in value — the server computes it by comparing before/after
       rows.push([
         'الحقول المعدَّلة',
         payload.fields?.length ? fieldsOf(payload.fields) : 'حُفظ بلا تغيير فعلي',
@@ -319,8 +326,9 @@ function describe(log, labels) {
   }
 
   /*
-   * العمليات على المقالات تمرّ عبر منصّة المعرفة، فرمز استجابتها هو سبب
-   * الفشل الحقيقي. لا يُعرض عند النجاح — 201 لا تفيد قارئ السجلّ.
+   * Operations on articles go through the knowledge platform, so its
+   * response code is the real reason for failure. It isn't shown on
+   * success — 201 tells the log's reader nothing useful.
    */
   if (!log.succeeded && payload.status) {
     rows.push(['سبب الفشل', 'رفضت منصّة المعرفة الطلب برمز ' + payload.status])
@@ -329,17 +337,18 @@ function describe(log, labels) {
   return rows
 }
 
-/** عناصر القائمة الأولى غير الموجودة في الثانية. */
+/** Items in the first list that aren't in the second. */
 function missingFrom(list = [], other = []) {
   return (list ?? []).filter((item) => !(other ?? []).includes(item))
 }
 
 /**
- * التاريخ والوقت بصيغة منصّة المعرفة نفسها.
+ * Date and time in the same format as the knowledge platform.
  *
- * toLocaleString('ar-SA') يُخرج تاريخاً هجرياً بأرقام عربية-هندية، بينما
- * المنصّة الأولى تعرض ميلادياً بأرقام لاتينية (Y/m/d). اختلاف الصيغتين بين
- * نظامين يعرضهما المستخدم جنباً إلى جنب يبدو خللاً لا خياراً.
+ * toLocaleString('ar-SA') produces a Hijri date with Arabic-Indic
+ * numerals, while the first-party platform shows a Gregorian date with
+ * Latin numerals (Y/m/d). A mismatch between the two formats, shown side
+ * by side to the same user, would look like a bug rather than a choice.
  */
 function formatMoment(value) {
   const at = new Date(value)

@@ -16,19 +16,20 @@ import { IconExternal, IconSearch } from '../components/icons'
 import { statusTone } from '../lib/labels'
 
 /*
- * المقالات.
+ * Articles.
  *
- * لا تُخزَّن هنا إطلاقاً — مالكها منصّة المعرفة، وهذي الصفحة تديرها عبر
- * واجهتها البرمجية. ولهذا فالضغط على المقال يفتح صفحته الحقيقية في
- * المنصّة، لا صفحة معاينة مقلّدة داخل اللوحة.
+ * Never stored here — the knowledge platform owns them, and this page
+ * manages them through its API. That's why clicking an article opens its
+ * real page on the platform, not a fake preview page inside the dashboard.
  */
 
 const EMPTY_FORM = { title: '', content: '', tags: [] }
 
 /*
- * حالات المقال كما تعرّفها منصّة المعرفة. القيم مطابقة لثوابت Post::statuses()
- * هناك، والمسمّى العربي يأتي من الخادم في status_label — فلا نترجم هنا ولا
- * يوجد مسمّى في مكانين.
+ * Article statuses as defined by the knowledge platform. The values match
+ * the Post::statuses() constants there, and the Arabic label comes from
+ * the server in status_label — so we don't translate here, and no label
+ * is ever defined in two places.
  */
 const STATUS_FILTERS = [
   { value: 'all', label: 'الكل' },
@@ -58,7 +59,7 @@ export default function ArticlesPage() {
   const [confirming, setConfirming] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  /** رابط المقال الحقيقي في منصّة المعرفة. */
+  /** The article's real URL on the knowledge platform. */
   const publicUrl = (slug) => (platformUrl ? `${platformUrl}/posts/${slug}` : null)
 
   const load = useCallback(async (term, statusFilter) => {
@@ -75,16 +76,17 @@ export default function ArticlesPage() {
     }
   }, [])
 
-  // بحث مؤجّل: لا نرسل طلباً مع كل حرف
+  // Debounced search: we don't send a request on every keystroke
   useEffect(() => {
     const timer = setTimeout(() => load(search, status), 350)
     return () => clearTimeout(timer)
   }, [search, status, load])
 
   /*
-   * التصنيفات تُجلب من منصّة المعرفة مرة واحدة عند فتح الصفحة — لا نسخة منها
-   * في قاعدة هذا المشروع. وفشل جلبها لا يُعطّل الصفحة: المحرّر يعمل بلا
-   * تصنيفات، وهي حقل اختياري في المنصّة أصلاً.
+   * Categories are fetched from the knowledge platform once, when the page
+   * opens — there's no copy of them in this project's database. A failed
+   * fetch doesn't break the page: the editor still works without
+   * categories, since they're an optional field on the platform anyway.
    */
   useEffect(() => {
     api('/articles/categories')
@@ -101,12 +103,13 @@ export default function ArticlesPage() {
     }))
   }
 
-  /* ------------------------------ التفاصيل ----------------------------- */
+  /* ------------------------------ Details ----------------------------- */
 
   /*
-   * البطاقة تحمل مقتطفاً فقط؛ التفاصيل الكاملة تحتاج طلباً مستقلاً لأن قائمة
-   * المقالات لا تُحمّل التعليقات ولا المشاهدات. نفتح النافذة فوراً بما لدينا
-   * ثم نستبدله بالكامل حين يصل — فلا ينتظر المستخدم شاشة فارغة.
+   * The card only carries an excerpt; the full details need a separate
+   * request because the articles list doesn't load comments or views. We
+   * open the modal immediately with what we have, then replace it fully
+   * once it arrives — so the user isn't left staring at a blank screen.
    */
   async function openDetails(article) {
     setViewing(article)
@@ -122,7 +125,7 @@ export default function ArticlesPage() {
     }
   }
 
-  /* ------------------------------ التحرير ------------------------------ */
+  /* ------------------------------ Editing ------------------------------ */
 
   function openCreate() {
     setEditingSlug(null)
@@ -138,7 +141,7 @@ export default function ArticlesPage() {
     setForm({
       title: article.title,
       content: article.content,
-      // المنصّة تُرجع التصنيفات كائناتٍ، ونرسلها إليها معرّفات مختصرة
+      // The platform returns categories as objects; we send back short identifiers
       tags: (article.tags ?? []).map((tag) => tag.slug),
     })
     setImage(null)
@@ -148,11 +151,12 @@ export default function ArticlesPage() {
   }
 
   /**
-   * الحفظ.
+   * Saving.
    *
-   * status يُرسَل عند الإنشاء فقط: عند التعديل لا نمسّ حالة النشر إطلاقاً —
-   * تغييرها إجراء مستقل له زرّه وصلاحيته، فلا يسحب أحدٌ نشر مقال وهو يصحّح
-   * خطأً إملائياً فيه.
+   * status is only sent on creation: on edit we never touch the publish
+   * state at all — changing it is a separate action with its own button
+   * and permission, so no one accidentally unpublishes an article while
+   * fixing a typo in it.
    */
   async function submit(statusOnCreate) {
     setBusy(true)
@@ -163,11 +167,12 @@ export default function ArticlesPage() {
 
       if (editingSlug) {
         /*
-         * مع صورة نرسل POST ومعه _method=PUT.
+         * With an image we send POST plus _method=PUT.
          *
-         * PHP لا يفكّ ترميز multipart إلا في POST، فـPUT يصل بجسم فارغ. وانتحال
-         * الطريقة آلية أصلية في Laravel: الموجّه يرى الطلب PUT فيطابق المسار
-         * القائم — فلا مسار جديد ولا تغيير في العقد.
+         * PHP only decodes multipart on POST, so PUT arrives with an empty
+         * body. Method spoofing is a native Laravel mechanism: the router
+         * sees the request as PUT and matches the existing route — no new
+         * route, no change to the contract.
          */
         await (image
           ? api(`/articles/${editingSlug}`, {
@@ -202,8 +207,9 @@ export default function ArticlesPage() {
   }
 
   /*
-   * النشر والسحب مساران مستقلّان لا PUT عام: الصلاحية تُفحص على المسار نفسه،
-   * والعملية تظهر في السجلّ باسمها لا مندمجةً في «تعديل مقال».
+   * Publish and unpublish are separate paths, not a generic PUT: the
+   * permission is checked on the route itself, and the action shows up in
+   * the log under its own name instead of being merged into "edit article".
    */
   async function changeStatus(article, action) {
     setBusy(true)
@@ -241,12 +247,13 @@ export default function ArticlesPage() {
     }
   }
 
-  /* ------------------------------- العرض ------------------------------- */
+  /* ------------------------------- Display ------------------------------- */
 
   return (
     <div>
-      {/* البحث والتصفية معاً في جهة البداية، وزر الإنشاء وحده في المقابل —
-          نفس بنية شريط المستخدمين وأبعاده، فلا يختلف الصفّان بين الصفحتين. */}
+      {/* Search and filter together at the start side, the create button alone
+          at the other end — same structure and sizing as the users toolbar,
+          so the two rows never differ between pages. */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
@@ -262,8 +269,9 @@ export default function ArticlesPage() {
             />
           </div>
 
-          {/* التصفية تُنفَّذ في منصّة المعرفة لا هنا: القائمة مُرقَّمة، وتصفية
-              الصفحة المعروضة وحدها تُخفي مقالات الصفحات الأخرى. */}
+          {/* Filtering happens on the knowledge platform, not here: the list is
+              paginated, and filtering only the displayed page would hide
+              articles from the other pages. */}
           <SelectControl
             value={status}
             onChange={(event) => setStatus(event.target.value)}
@@ -304,9 +312,10 @@ export default function ArticlesPage() {
             const url = publicUrl(article.slug)
 
             /*
-             * غير المنشور ليس له صفحة عامة: المنصّة تُرجع 404 للزائر عمداً.
-             * فنعطّل الزر ونقول السبب، بدل أن نرسل المستخدم إلى خطأ يبدو عطلاً
-             * وهو سلوك صحيح.
+             * An unpublished article has no public page: the platform
+             * deliberately returns 404 to a visitor. So we disable the
+             * button and state the reason, instead of sending the user to
+             * an error that looks broken but is actually correct behavior.
              */
             const isPublic = article.status === 'published'
 
@@ -317,7 +326,7 @@ export default function ArticlesPage() {
                   transition-all hover:border-ink-300 hover:shadow-lift"
               >
                 <div className="flex gap-4">
-                  {/* الصورة تفتح المقال في المنصّة أيضاً */}
+                  {/* The image also opens the article on the platform */}
                   {article.image_url && (
                     <a
                       href={url ?? '#'}
@@ -338,9 +347,11 @@ export default function ArticlesPage() {
 
                   <div className="min-w-0 flex-1">
                     {/*
-                      عنوان المقال رابط حقيقي للمقال في المنصّة الأولى.
-                      عنصر <a> لا onClick: يُفتح بالنقر الأوسط، وتُنسخ وجهته،
-                      ويقرأه قارئ الشاشة رابطاً — وهذا ما يفقده زر مزيّف.
+                      The article title is a real link to the article on the
+                      first-party platform. An <a> element, not onClick: it
+                      opens with a middle click, its destination can be
+                      copied, and a screen reader announces it as a link —
+                      a fake button loses all of that.
                     */}
                     <div className="flex flex-wrap items-center gap-2">
                       {isPublic ? (
@@ -360,7 +371,7 @@ export default function ArticlesPage() {
                         <span className="font-bold leading-snug text-ink-900">{article.title}</span>
                       )}
 
-                      {/* المسمّى العربي يأتي من المنصّة — لا نترجمه هنا */}
+                      {/* The Arabic label comes from the platform — we don't translate it here */}
                       {article.status_label && (
                         <span
                           className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold
@@ -409,7 +420,7 @@ export default function ArticlesPage() {
                         </Button>
                       )}
 
-                      {/* النشر يظهر لغير المنشور، والسحب للمنشور — كلٌّ بصلاحيته */}
+                      {/* Publish shows for the unpublished, unpublish for the published — each gated by its own permission */}
                       {article.status !== 'published' && can('articles.publish') && (
                         <Button
                           size="sm"
@@ -445,7 +456,7 @@ export default function ArticlesPage() {
         </div>
       )}
 
-      {/* ------------------------------ المحرّر ---------------------------- */}
+      {/* ------------------------------ Editor ---------------------------- */}
 
       <Modal
         open={editorOpen}
@@ -455,9 +466,11 @@ export default function ArticlesPage() {
         footer={
           <>
             {/*
-              زرّان صريحان عند الإنشاء بدل قائمة حالة: «نشر» لا يظهر أصلاً لمن
-              لا يملك articles.publish، فلا يرى خياراً سيُرفض. والخادم يرفضه
-              على أي حال لو استُدعي المسار مباشرة.
+              Two explicit buttons on creation instead of a status dropdown:
+              "Publish" simply doesn't appear for someone without
+              articles.publish, so they never see an option that would be
+              refused. The server rejects it anyway if the route is called
+              directly.
             */}
             {!editingSlug && can('articles.publish') && (
               <Button onClick={() => submit('published')} disabled={busy}>
@@ -518,7 +531,7 @@ export default function ArticlesPage() {
             </label>
 
             <div className="flex items-start gap-3">
-              {/* الصورة الحالية تُعرض عند التعديل، فيعرف المستخدم ما سيستبدله */}
+              {/* The current image is shown when editing, so the user knows what they're replacing */}
               {(image || currentImage) && (
                 <img
                   src={image ? URL.createObjectURL(image) : currentImage}
@@ -559,8 +572,9 @@ export default function ArticlesPage() {
           </div>
 
           {/*
-            التصنيفات تأتي من منصّة المعرفة ولا تُدار من هنا — بند صريح في
-            المواصفة. فإضافة تصنيف جديد أو تعديله يقع هناك، ويظهر هنا فوراً.
+            Categories come from the knowledge platform and aren't managed
+            from here — an explicit requirement in the spec. Adding or
+            editing a category happens there, and shows up here immediately.
           */}
           {categories.length > 0 && (
             <div>
@@ -607,7 +621,7 @@ export default function ArticlesPage() {
         </form>
       </Modal>
 
-      {/* ---------------------------- التفاصيل ---------------------------- */}
+      {/* ---------------------------- Details ---------------------------- */}
 
       <Modal
         open={Boolean(viewing)}
@@ -652,8 +666,9 @@ export default function ArticlesPage() {
               </dd>
 
               {/*
-                اسم الكاتب يُخفى في مقالات الإدارة — المنصّة نفسها لا ترسله
-                حينها. فغيابه ليس نقصاً في البيانات بل قرار في المنصّة.
+                The author's name is hidden on admin-authored articles — the
+                platform itself doesn't send it in that case. Its absence
+                isn't a data gap, it's a decision made on the platform.
               */}
               <dt className="font-semibold text-ink-500">الكاتب</dt>
               <dd className="text-ink-800">{viewing.author?.name ?? 'الإدارة'}</dd>
@@ -677,7 +692,7 @@ export default function ArticlesPage() {
                 </>
               )}
 
-              {/* الأرقام تصل مع التفاصيل لا مع القائمة، فقد تكون غائبة لحظة الفتح */}
+              {/* The counts arrive with the details, not the list, so they may be absent the moment it opens */}
               {viewing.views_count !== undefined && (
                 <>
                   <dt className="font-semibold text-ink-500">المشاهدات</dt>
@@ -730,11 +745,12 @@ function flatten(err) {
 }
 
 /**
- * تحويل النموذج إلى FormData لإرسال الصورة معه.
+ * Converts the form into FormData so the image can be sent with it.
  *
- * المصفوفات تُكتب `tags[0]` و`tags[1]`: FormData لا يعرف المصفوفات المتداخلة،
- * وهذي الصيغة يعيد PHP تجميعها مصفوفةً عند الاستقبال. والقيم الفارغة تُسقَط
- * لأنها تصل نصّاً «undefined» لو أُرسلت.
+ * Arrays are written as `tags[0]` and `tags[1]`: FormData doesn't know
+ * nested arrays, and PHP reassembles this shape back into an array on
+ * receipt. Empty values are dropped because they'd otherwise arrive as
+ * the literal string "undefined".
  */
 function toFormData(payload, image) {
   const data = new FormData()
@@ -756,7 +772,7 @@ function toFormData(payload, image) {
   return data
 }
 
-/** التاريخ بصيغة منصّة المعرفة: ميلادي بأرقام لاتينية. */
+/** Date in the knowledge platform's format: Gregorian with Latin numerals. */
 function formatDate(value) {
   if (! value) return '— (لم يُنشر بعد)'
 
